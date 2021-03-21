@@ -1,27 +1,24 @@
-import logo from "./logo.svg";
-import "./App.css";
 import "./bootstrap.min.css";
-import NavigationBar from "./components/NavigationBar/NavigationBar";
+import { BrowserRouter as Router, Route } from "react-router-dom";
+import Search from "./pages/Search";
+import Landing from "./pages/Landing";
+import Video from "./pages/Video";
 
 function App() {
   return (
-    <div className="App">
-      <NavigationBar />
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Router>
+      <Route exact path="/">
+        <Landing />
+      </Route>
+      <Route path="/search">
+        <Search />
+      </Route>
+      <Route path="/video">
+        <Video />
+      </Route>
+    </Router>
+
+
   );
 }
 

@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 
-class VideoPlayer extends Component {
+class ImageLandingItem extends Component {
     render() {
         return (
             <div>
@@ -10,4 +10,4 @@ class VideoPlayer extends Component {
     }
 }
 
-export default VideoPlayer;
+export default ImageLandingItem;
