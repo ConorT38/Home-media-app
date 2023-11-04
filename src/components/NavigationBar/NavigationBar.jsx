@@ -7,7 +7,7 @@ class NavigationBar extends Component {
   render() {
     return (
       <React.Fragment>
-        <nav className="navbar navbar-expand-lg navbar-dark bg-primary">
+        <nav className="navbar justify-content-between navbar-dark bg-primary">
           <a className="navbar-brand" href="/">
             Home Media
           </a>

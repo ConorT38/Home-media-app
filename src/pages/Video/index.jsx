@@ -13,7 +13,7 @@ class Video extends Component {
     };
 
     getSearchResults = videoId => {
-        fetch("http://localhost:8081/api/video/" + videoId).then(res => res.json())
+        fetch("http://homemedia.lan:8081/api/video/" + videoId).then(res => res.json())
             .then(
                 (result) => {
                     console.log(result);
@@ -22,7 +22,7 @@ class Video extends Component {
                         views: result[0].views,
                         videoPlayer: (
                             <ReactVideo
-                                src={"http://192.168.0.21" + result[0].cdn_path}
+                                src={"http://cdn.homemedia.lan" + result[0].cdn_path}
                                 // poster="https://www.example.com/poster.png"
                                 primaryColor="#ff8c00"
                             />
