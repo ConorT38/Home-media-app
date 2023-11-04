@@ -10,7 +10,7 @@ class Search extends Component {
     };
 
     getSearchResults = searchTerm => {
-        fetch("http://localhost:8081/api/search/" + searchTerm).then(res => res.json())
+        fetch("http://homemedia.lan:8081/api/search/" + searchTerm).then(res => res.json())
             .then(
                 (result) => {
                     console.log(result);
