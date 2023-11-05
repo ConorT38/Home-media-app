@@ -91,7 +91,15 @@ class Landing extends Component {
                     <div className="card">
                       <div className="card-block">
                         <h5 className="card-title">
-                          <a href={"/video/" + object.id}>{object.title}</a>
+                          <a
+                            href={"/video/" + object.id}
+                            style={{
+                              textDecoration: "none",
+                              color: "greenyellow",
+                            }}
+                          >
+                            {object.title}
+                          </a>
                         </h5>
                         <h6 className="card-subtitle text-muted">
                           {" "}
