@@ -2,7 +2,7 @@ import React, { Component } from "react";
 
 class SearchResult extends Component {
   render() {
-    const { id, title, views } = this.props;
+    const { id, title } = this.props;
 
     return (
       <React.Fragment>

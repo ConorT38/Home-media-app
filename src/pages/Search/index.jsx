@@ -23,7 +23,7 @@ class Search extends Component {
             searchResults: result,
           });
         },
-        (error) => {
+        () => {
           this.setState({
             isLoaded: true,
             errorLoading: true,
@@ -32,15 +32,20 @@ class Search extends Component {
       );
   };
 
-  unlisten = this.props.history.listen((location, action) => {
-    this.setState({
-      searchTerm: decodeURI(window.location.href.match(/(?<=\/search\/).*/)[0]),
+  unlisten = 
+    this.props.history.listen((location, action) => {
+      this.setState({
+        searchTerm: decodeURI(
+          window.location.href.match(/(?<=\/search\/).*/)[0]
+        ),
+      });
+      console.log(
+        decodeURI(window.location.href.match(/(?<=\/search\/).*/)[0])
+      );
+      this.getSearchResults(
+        decodeURI(window.location.href.match(/(?<=\/search\/).*/)[0])
+      );
     });
-    console.log(decodeURI(window.location.href.match(/(?<=\/search\/).*/)[0]));
-    this.getSearchResults(
-      decodeURI(window.location.href.match(/(?<=\/search\/).*/)[0])
-    );
-  });
 
   componentDidMount() {
     this.getSearchResults(this.state.searchTerm);
