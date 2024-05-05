@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import SearchResultsList from "../../components/Search/SearchResultsList";
 import NavigationBar from "../../components/NavigationBar/NavigationBar";
+import { useLocation } from "react-router-dom";
 
 export const SearchPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState<string>("");
@@ -8,24 +9,32 @@ export const SearchPage: React.FC = () => {
   const [currentTab, setCurrentTab] = useState<number>(0);
   const [errorLoading, setErrorLoading] = useState<boolean>(false);
 
-  useEffect(() => {
-    async function getSearchResults(searchTerm: string) {
-      try {
-        const response = await fetch(
-          "http://homemedia.lan:8081/api/search/" + searchTerm
-        );
-        if (!response.ok) throw new Error(response.status.toString());
-        const result = await response.json();
-        setSearchResults(result);
-      } catch (error) {
-        setErrorLoading(true);
-      }
+  const location = useLocation();
+  async function getSearchResults(searchTerm: string) {
+    try {
+      const response = await fetch(
+        "http://homemedia.lan:8081/api/search/" + searchTerm
+      );
+      if (!response.ok) throw new Error(response.status.toString());
+      const result = await response.json();
+      setSearchResults(result);
+    } catch (error) {
+      setErrorLoading(true);
     }
+  }
 
+  useEffect(() => {
+    const searchParam = location.pathname.match(/(?<=\/search\/).*/)?.[0];
+    if (searchParam) {
+      setSearchTerm(decodeURI(searchParam));
+      getSearchResults(decodeURI(searchParam));
+    }
+  }, [location]);
+
+  useEffect(() => {
     const searchParam = window.location.href.match(/(?<=\/search\/).*/)?.[0];
     if (searchParam) {
       setSearchTerm(decodeURI(searchParam));
-
       getSearchResults(decodeURI(searchParam));
     }
   }, []);

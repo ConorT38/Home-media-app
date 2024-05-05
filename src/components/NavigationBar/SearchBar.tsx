@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
-import { useHistory } from "react-router-dom";
+import { useNavigate} from "react-router-dom";
 
 const SearchBar: React.FC = () => {
     const [search, setSearch] = useState("");
 
-    const history = useHistory();
+    const navigate = useNavigate();
 
     const searchHandler = (e: React.FormEvent) => {
         e.preventDefault();
-        history.push("/search/" + search);
+        navigate("/search/" + search);
     };
 
     return (
