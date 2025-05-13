@@ -7,7 +7,7 @@ import { useLocation } from "react-router-dom";
 
 async function getSearchResults(videoId: string) {
   if (!videoId) return console.error("No videoId provided");
-  return await fetch("http://homemedia.lan:8081/api/video/" + videoId).then(
+  return await fetch("http://192.168.0.23:8081/api/video/" + videoId).then(
     (res) => res.json()
   );
 }
@@ -35,7 +35,7 @@ const VideoContent: React.FC = () => {
             setViews(result[0].views);
             setVideoPlayer(
               <Video
-                src={"http://cdn.homemedia.lan" + result[0].cdn_path}
+                src={"http://192.168.0.23:8000" + result[0].cdn_path}
                 height={""}
                 width={""}
                 poster={""} // poster="https://www.example.com/poster.png"
@@ -60,8 +60,8 @@ const VideoContent: React.FC = () => {
 
         // Send the new title to the backend
         fetch(
-          "http://homemedia.lan:8081/api/video/" +
-            location.pathname.split("/")[2],
+          "http://192.168.0.23:8081/api/video/" +
+          location.pathname.split("/")[2],
           {
             method: "PUT",
             headers: {

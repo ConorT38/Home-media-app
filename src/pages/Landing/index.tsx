@@ -25,7 +25,7 @@ const Landing: React.FC = () => {
 
   useEffect(() => {
     getMediaResults(
-      "http://homemedia.lan:8081/api/top/media/",
+      "http://192.168.0.23:8081/api/top/media/",
       currentTab
     );
   }, [currentTab]);
@@ -43,7 +43,7 @@ const Landing: React.FC = () => {
                 }
                 onClick={(e) =>
                   getMediaResults(
-                    "http://homemedia.lan:8081/api/top/media/",
+                    "http://192.168.0.23:8081/api/top/media/",
                     0
                   )
                 }

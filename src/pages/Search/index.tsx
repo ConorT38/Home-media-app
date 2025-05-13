@@ -13,7 +13,7 @@ export const SearchPage: React.FC = () => {
   async function getSearchResults(searchTerm: string) {
     try {
       const response = await fetch(
-        "http://homemedia.lan:8081/api/search/" + searchTerm
+        "http://192.168.0.23:8081/api/search/" + searchTerm
       );
       if (!response.ok) throw new Error(response.status.toString());
       const result = await response.json();
