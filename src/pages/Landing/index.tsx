@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import NavigationBar from "../../components/NavigationBar/NavigationBar";
+import { getHostEndpoint } from "../../utils/common";
 
 const Landing: React.FC = () => {
   const [mediaResults, setMediaResults] = useState([]);
@@ -25,7 +26,7 @@ const Landing: React.FC = () => {
 
   useEffect(() => {
     getMediaResults(
-      "http://192.168.0.23:8081/api/top/media/",
+      getHostEndpoint() + ":8081/api/top/media/",
       currentTab
     );
   }, [currentTab]);
@@ -43,7 +44,7 @@ const Landing: React.FC = () => {
                 }
                 onClick={(e) =>
                   getMediaResults(
-                    "http://192.168.0.23:8081/api/top/media/",
+                    getHostEndpoint() + ":8081/api/top/media/",
                     0
                   )
                 }

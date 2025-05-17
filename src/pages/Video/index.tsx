@@ -4,10 +4,11 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Video } from "reactjs-media";
 import { faCheck, faEdit } from "@fortawesome/free-solid-svg-icons";
 import { useLocation } from "react-router-dom";
+import { getHostEndpoint } from "../../utils/common";
 
 async function getSearchResults(videoId: string) {
   if (!videoId) return console.error("No videoId provided");
-  return await fetch("http://192.168.0.23:8081/api/video/" + videoId).then(
+  return await fetch(getHostEndpoint() + ":8081/api/video/" + videoId).then(
     (res) => res.json()
   );
 }
@@ -35,7 +36,7 @@ const VideoContent: React.FC = () => {
             setViews(result[0].views);
             setVideoPlayer(
               <Video
-                src={"http://192.168.0.23:8000" + result[0].cdn_path}
+                src={getHostEndpoint() + ":8000" + result[0].cdn_path}
                 height={""}
                 width={""}
                 poster={""} // poster="https://www.example.com/poster.png"
@@ -60,7 +61,7 @@ const VideoContent: React.FC = () => {
 
         // Send the new title to the backend
         fetch(
-          "http://192.168.0.23:8081/api/video/" +
+          getHostEndpoint() + ":8081/api/video/" +
           location.pathname.split("/")[2],
           {
             method: "PUT",

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import SearchResultsList from "../../components/Search/SearchResultsList";
 import NavigationBar from "../../components/NavigationBar/NavigationBar";
 import { useLocation } from "react-router-dom";
+import { getHostEndpoint } from "../../utils/common";
 
 export const SearchPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState<string>("");
@@ -13,10 +14,11 @@ export const SearchPage: React.FC = () => {
   async function getSearchResults(searchTerm: string) {
     try {
       const response = await fetch(
-        "http://192.168.0.23:8081/api/search/" + searchTerm
+        getHostEndpoint() + ":8081/api/search/" + searchTerm
       );
       if (!response.ok) throw new Error(response.status.toString());
       const result = await response.json();
+      console.log(result);
       setSearchResults(result);
     } catch (error) {
       setErrorLoading(true);
