@@ -81,7 +81,6 @@ const VideoContent: React.FC = () => {
 
   return (
     <React.Fragment>
-      <NavigationBar />
       <div className="container">
         <div className="row">{videoPlayer}</div>
         <div className="row">
@@ -122,7 +121,7 @@ const VideoContent: React.FC = () => {
           </div>
         </div>
         <br />
-        {views} views &middot; {uploaded}
+        {views} views &middot; {new Date(uploaded).toLocaleDateString("en-US")}
         <hr />
       </div>
     </React.Fragment>

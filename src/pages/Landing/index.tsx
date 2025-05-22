@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from "react";
 import NavigationBar from "../../components/NavigationBar/NavigationBar";
 import { getHostEndpoint } from "../../utils/common";
+import { Button, Card, Col, Container, Row } from "react-bootstrap";
+import { Video } from "../../types";
+import { Link } from "react-router-dom";
 
 const Landing: React.FC = () => {
-  const [mediaResults, setMediaResults] = useState([]);
+  const [mediaResults, setMediaResults] = useState<Video[]>([]);
   const [currentTab, setCurrentTab] = useState(0);
   const [errorLoading, setErrorLoading] = useState(false);
 
@@ -16,6 +19,7 @@ const Landing: React.FC = () => {
       .then(
         (result) => {
           setMediaResults(result);
+          console.log(result);
           setCurrentTab(tab);
         },
         (error) => {
@@ -32,88 +36,31 @@ const Landing: React.FC = () => {
   }, [currentTab]);
 
   return (
-    <div className="App">
-      <NavigationBar />
-      <div className="py-5">
-        <div className="container">
-          <nav>
-            <div className="nav nav-tabs" id="nav-tab" role="tablist">
-              <a
-                className={
-                  "nav-item nav-link " + (currentTab === 0 ? "active" : "")
-                }
-                onClick={(e) =>
-                  getMediaResults(
-                    getHostEndpoint() + ":8081/api/top/media/",
-                    0
-                  )
-                }
-                id="nav-home-tab"
-                href="#Top-Viewed"
-              >
-                Top Viewed
-              </a>
-              <a
-                className={
-                  "nav-item nav-link " + (currentTab === 1 ? "active" : "")
-                }
-                onClick={(e) => setCurrentTab(1)}
-                id="nav-profile-tab"
-                href="#Movies"
-              >
-                Movies
-              </a>
-              <a
-                className={
-                  "nav-item nav-link " + (currentTab === 2 ? "active" : "")
-                }
-                onClick={(e) => setCurrentTab(2)}
-                id="nav-contact-tab"
-                href="#Shows"
-              >
-                Shows
-              </a>
-            </div>
-          </nav>
-          <br />
-          <div className="row hidden-md-up">
-            {!errorLoading ? (
-              mediaResults.map((object: any) => (
-                <div className="col-md-4">
-                  <div className="card">
-                    <div className="card-block">
-                      <h5 className="card-title">
-                        <a
-                          href={"/video/" + object.id}
-                          style={{
-                            textDecoration: "none",
-                            color: "greenyellow",
-                          }}
-                        >
-                          {object.title}
-                        </a>
-                      </h5>
-                      <h6 className="card-subtitle text-muted">
-                        {" "}
-                        uploaded {object.uploaded}
-                      </h6>
-                      <p className="card-text p-y-1">
-                        {object.views + " views"}{" "}
-                      </p>
-                    </div>
-                  </div>
-                  <br />
-                </div>
-              ))
-            ) : (
-              <div className="card-title">
-                Error occurred getting top media
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
+    <Container>
+      <Row>
+        {mediaResults?.map((media, index) => (
+          <Col key={index} xs={12} sm={6} md={4} lg={3} xl={2} className="d-flex justify-content-center mb-4">
+            <Card style={{ width: "18rem" }}>
+
+              <Card.Body>
+                <Card.Img
+                  variant="top"
+                  src={'/default-thumbnail.jpg'}
+                  style={{ height: "200px", objectFit: "cover" }}
+                />
+                <Card.Title><Link to={'/video/' + media.id} style={{ textDecoration: 'none' }}>{media.title}</Link></Card.Title>
+                <Card.Text>
+                  <Row>
+                    <Col><small>{media?.views + ' views'}</small></Col>
+                    <Col></Col>
+                  </Row>
+                </Card.Text>
+              </Card.Body>
+            </Card>
+          </Col>
+        ))}
+      </Row>
+    </Container>
   );
 };
 

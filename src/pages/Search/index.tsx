@@ -43,7 +43,6 @@ export const SearchPage: React.FC = () => {
 
   return (
     <React.Fragment>
-      <NavigationBar />
       <div className="container">
         {!errorLoading ? (
           <>

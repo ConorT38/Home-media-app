@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { useNavigate} from "react-router-dom";
+import { Stack, Button, Form } from 'react-bootstrap';
+import { useNavigate } from "react-router-dom";
 
 const SearchBar: React.FC = () => {
     const [search, setSearch] = useState("");
@@ -13,18 +14,21 @@ const SearchBar: React.FC = () => {
 
     return (
         <div>
-            <form className="form-inline my-2 my-lg-0" onSubmit={searchHandler}>
-                <input
-                    className="form-control mr-sm-2"
-                    type="text"
-                    placeholder="Search"
-                    value={search}
-                    autoComplete="off"
-                    onChange={e => setSearch(e.target.value)}
-                />
-                <button className="btn btn-secondary my-2 my-sm-0" type="submit">
-                    Search
-                </button>
+            <form onSubmit={searchHandler}>
+                <div>
+                    <Stack direction="horizontal" gap={2}>
+                        <Form.Control
+                            type="text"
+                            placeholder="Search"
+                            value={search}
+                            autoComplete="off"
+                            onChange={e => setSearch(e.target.value)}
+                        />
+                        <Button variant="secondary" type="submit">
+                            Search
+                        </Button>
+                    </Stack>
+                </div>
             </form>
         </div>
     );
