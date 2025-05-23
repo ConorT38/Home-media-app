@@ -14,13 +14,14 @@ export const SearchPage: React.FC = () => {
   async function getSearchResults(searchTerm: string) {
     try {
       const response = await fetch(
-        getHostEndpoint() + ":8081/api/search/" + searchTerm
+        `${getHostEndpoint()}/api/search/${encodeURIComponent(searchTerm)}`
       );
       if (!response.ok) throw new Error(response.status.toString());
       const result = await response.json();
       console.log(result);
       setSearchResults(result);
     } catch (error) {
+      console.error("Error fetching search results:", error);
       setErrorLoading(true);
     }
   }
