@@ -27,19 +27,27 @@ export const SearchPage: React.FC = () => {
   }
 
   useEffect(() => {
-    const searchParam = location.pathname.match(/(?<=\/search\/).*/)?.[0];
-    if (searchParam) {
-      setSearchTerm(decodeURI(searchParam));
-      getSearchResults(decodeURI(searchParam));
-    }
+    const fetchSearchResults = async () => {
+      const searchParam = location.pathname.match(/(?<=\/search\/).*/)?.[0];
+      if (searchParam) {
+        const decodedParam = decodeURI(searchParam);
+        setSearchTerm(decodedParam);
+        await getSearchResults(decodedParam);
+      }
+    };
+    fetchSearchResults();
   }, [location]);
 
   useEffect(() => {
-    const searchParam = window.location.href.match(/(?<=\/search\/).*/)?.[0];
-    if (searchParam) {
-      setSearchTerm(decodeURI(searchParam));
-      getSearchResults(decodeURI(searchParam));
-    }
+    const fetchSearchResults = async () => {
+      const searchParam = window.location.href.match(/(?<=\/search\/).*/)?.[0];
+      if (searchParam) {
+        const decodedParam = decodeURI(searchParam);
+        setSearchTerm(decodedParam);
+        await getSearchResults(decodedParam);
+      }
+    };
+    fetchSearchResults();
   }, []);
 
   return (
