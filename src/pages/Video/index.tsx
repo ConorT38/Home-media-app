@@ -36,6 +36,7 @@ const VideoContent: React.FC = () => {
             setViews(result[0].views);
             setVideoPlayer(
               <Video
+                controls={true}
                 src={getHostEndpoint() + ":8000" + result[0].cdn_path}
                 height={""}
                 width={""}
