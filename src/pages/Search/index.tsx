@@ -14,7 +14,7 @@ export const SearchPage: React.FC = () => {
   async function getSearchResults(searchTerm: string) {
     try {
       const response = await fetch(
-        `${getHostEndpoint()}/api/search/${encodeURIComponent(searchTerm)}`
+        `${getHostEndpoint()}/api/search/${searchTerm}`
       );
       if (!response.ok) throw new Error(response.status.toString());
       const result = await response.json();
