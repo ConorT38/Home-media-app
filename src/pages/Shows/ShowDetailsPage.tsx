@@ -16,7 +16,7 @@ const ShowDetailsPage: React.FC = () => {
     const { id: showId } = useParams<{ id: string }>(); // Extract show ID from route params
 
     const getShowDetails = () => {
-        fetch(`${getHostEndpoint()}:8081/api/shows/${showId}`)
+        fetch(`${getHostEndpoint()}:8081/api/show/${showId}`)
             .then((response) => {
                 if (!response.ok) throw new Error(response.statusText);
                 return response.json();
@@ -41,7 +41,7 @@ const ShowDetailsPage: React.FC = () => {
     const handleEditShow = () => {
         // Handle edit show logic here
         setEditModalVisible(false);
-        fetch(`${getHostAPIEndpoint()}/shows/${showId}`, {
+        fetch(`${getHostAPIEndpoint()}/show/${showId}`, {
             method: "PUT",
             headers: {
                 "Content-Type": "application/json",

@@ -4,11 +4,11 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Video } from "reactjs-media";
 import { faCheck, faEdit } from "@fortawesome/free-solid-svg-icons";
 import { useLocation } from "react-router-dom";
-import { getHostEndpoint } from "../../utils/common";
+import { getHostAPIEndpoint, getHostEndpoint } from "../../utils/common";
 
 async function getSearchResults(videoId: string) {
   if (!videoId) return console.error("No videoId provided");
-  return await fetch(getHostEndpoint() + ":8081/api/video/" + videoId).then(
+  return await fetch(getHostAPIEndpoint() + "/video/" + videoId).then(
     (res) => res.json()
   );
 }

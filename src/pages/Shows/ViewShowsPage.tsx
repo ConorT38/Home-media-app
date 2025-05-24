@@ -64,7 +64,7 @@ const ViewShowsPage: React.FC = () => {
         <Container>
             <Row className="mb-4">
                 <Col className="d-flex justify-content-end">
-                    <a href="/shows/create" className="btn btn-primary">
+                    <a href="/show/create" className="btn btn-primary">
                         Create
                     </a>
                 </Col>
@@ -90,7 +90,7 @@ const ViewShowsPage: React.FC = () => {
                                 <Card.Body>
                                     <Card.Title>
                                         <a
-                                            href={"/shows/" + object.id}
+                                            href={"/show/" + object.id}
                                             style={{
                                                 textDecoration: "none",
                                                 color: "greenyellow",

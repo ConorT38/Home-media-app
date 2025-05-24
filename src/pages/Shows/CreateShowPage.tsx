@@ -51,7 +51,7 @@ const CreateShowPage: React.FC = () => {
         };
         console.log("New Show Data:", newShow);
         // Submit newShow to API
-        await fetch(`${getHostAPIEndpoint()}/shows`, {
+        await fetch(`${getHostAPIEndpoint()}/show`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -67,7 +67,7 @@ const CreateShowPage: React.FC = () => {
             .then((data) => {
                 console.log("Show created successfully:", data);
                 // Optionally, redirect or clear the form
-                window.location.href = `/shows/${data.id}`;
+                window.location.href = `/show/${data.id}`;
             })
             .catch((error) => {
                 console.error("Error creating show:", error);
