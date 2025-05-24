@@ -37,6 +37,8 @@ const Landing: React.FC = () => {
 
   return (
     <Container>
+      <h4>Continue watching</h4>
+      <hr />
       <Row>
         {mediaResults?.map((media, index) => (
           <Col key={index} xs={12} sm={6} md={4} lg={3} xl={2} className="d-flex justify-content-center mb-4">

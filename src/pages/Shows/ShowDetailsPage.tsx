@@ -1,23 +1,31 @@
 import React, { useState, useEffect } from "react";
-import NavigationBar from "../../components/NavigationBar/NavigationBar";
-import { getHostEndpoint } from "../../utils/common";
+import { Button, Modal, Form, Table, Container, Row, Col, Card, Spinner } from "react-bootstrap";
+import { getHostAPIEndpoint, getHostEndpoint } from "../../utils/common";
+import { useParams } from "react-router-dom";
 
 const ShowDetailsPage: React.FC = () => {
-    const [mediaResults, setMediaResults] = useState([]);
-    const [currentTab, setCurrentTab] = useState(0);
+    const [showDetails, setShowDetails] = useState<any>(null);
     const [errorLoading, setErrorLoading] = useState(false);
-    const [searchQuery, setSearchQuery] = useState("");
-    const [currentPage, setCurrentPage] = useState(1);
+    const [editModalVisible, setEditModalVisible] = useState(false);
+    const [addSeasonModalVisible, setAddSeasonModalVisible] = useState(false);
+    const [title, setTitle] = useState("");
+    const [description, setDescription] = useState("");
+    const [seasonNumber, setSeasonNumber] = useState(1);
+    const [videos, setVideos] = useState<any[]>([]);
 
-    const getMediaResults = (url: string) => {
-        fetch(url)
+    const { id: showId } = useParams<{ id: string }>(); // Extract show ID from route params
+
+    const getShowDetails = () => {
+        fetch(`${getHostEndpoint()}:8081/api/shows/${showId}`)
             .then((response) => {
                 if (!response.ok) throw new Error(response.statusText);
-                else return response.json();
+                return response.json();
             })
             .then(
                 (result) => {
-                    setMediaResults(result);
+                    setShowDetails(result);
+                    setTitle(result.name);
+                    setDescription(result.description);
                     setErrorLoading(false);
                 },
                 () => {
@@ -27,101 +35,163 @@ const ShowDetailsPage: React.FC = () => {
     };
 
     useEffect(() => {
-        const endpoint = searchQuery
-            ? `${getHostEndpoint()}:8081/api/search?query=${searchQuery}&page=${currentPage}`
-            : `${getHostEndpoint()}:8081/api/top/media?page=${currentPage}`;
-        getMediaResults(endpoint);
-    }, [searchQuery, currentPage]);
+        getShowDetails();
+    }, []);
 
-    const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setSearchQuery(e.target.value);
-        setCurrentPage(1); // Reset to the first page on new search
+    const handleEditShow = () => {
+        // Handle edit show logic here
+        setEditModalVisible(false);
+        fetch(`${getHostAPIEndpoint()}/shows/${showId}`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                name: title,
+                description: description,
+            }),
+        })
+            .then((response) => {
+                if (!response.ok) throw new Error(response.statusText);
+                return response.json();
+            })
+            .then(() => {
+                getShowDetails(); // Refresh show details after update
+            })
+            .catch((error) => {
+                console.error("Error updating show:", error);
+            });
+    };
+
+    const handleAddSeason = () => {
+        // Handle add season logic here
+        setAddSeasonModalVisible(false);
     };
 
     return (
-        <div className="App">
-            <NavigationBar />
-            <div className="container py-5">
-                {/* Search Bar */}
-                <div className="row mb-4">
-                    <div className="col-md-12">
-                        <input
-                            type="text"
-                            className="form-control"
-                            placeholder="Search for shows..."
-                            value={searchQuery}
-                            onChange={handleSearchChange}
-                        />
-                    </div>
-                </div>
+        <>
+            <Container>
+                <Row className="mb-4">
+                    <Col>
+                        <h1>Show Details</h1>
+                    </Col>
+                    <Col className="text-end">
+                        <Button variant="primary" onClick={() => setEditModalVisible(true)}>
+                            Edit Show
+                        </Button>{" "}
+                        <Button variant="success" onClick={() => setAddSeasonModalVisible(true)}>
+                            Add Season
+                        </Button>
+                    </Col>
+                </Row>
 
-                {/* Results Section */}
-                <div className="row">
-                    {!errorLoading ? (
-                        mediaResults.map((object: any) => (
-                            <div className="col-md-4 col-sm-6 mb-4" key={object.id}>
-                                <div className="card h-100">
-                                    <div className="card-body">
-                                        <h5 className="card-title">
-                                            <a
-                                                href={"/video/" + object.id}
-                                                style={{
-                                                    textDecoration: "none",
-                                                    color: "greenyellow",
-                                                }}
-                                            >
-                                                {object.title}
-                                            </a>
-                                        </h5>
-                                        <p className="card-text">
-                                            {object.description}
-                                        </p>
-                                        <p className="card-text">
-                                            <strong>Seasons:</strong> {object.seasons}
-                                        </p>
-                                        <p className="card-text">
-                                            <strong>Episodes:</strong> {object.episodes}
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                        ))
-                    ) : (
-                        <div className="col-md-12">
-                            <div className="alert alert-danger" role="alert">
-                                Error occurred getting media results.
-                            </div>
-                        </div>
-                    )}
-                </div>
-
-                {/* Pagination */}
-                <div className="row mt-4">
-                    <div className="col-md-12 d-flex justify-content-center">
-                        <nav>
-                            <ul className="pagination">
-                                <li className={`page-item ${currentPage === 1 ? "disabled" : ""}`}>
-                                    <button
-                                        className="page-link"
-                                        onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                                    >
-                                        Previous
-                                    </button>
-                                </li>
-                                <li className="page-item">
-                                    <button
-                                        className="page-link"
-                                        onClick={() => setCurrentPage((prev) => prev + 1)}
-                                    >
-                                        Next
-                                    </button>
-                                </li>
-                            </ul>
-                        </nav>
+                {errorLoading ? (
+                    <div className="alert alert-danger" role="alert">
+                        Error occurred getting show details.
                     </div>
-                </div>
-            </div>
-        </div>
+                ) : showDetails ? (
+                    <Card>
+                        <Card.Body>
+                            <Card.Title>{showDetails.name}</Card.Title>
+                            <Card.Text>{showDetails.description}</Card.Text>
+                            <Card.Text>
+                                <strong>Seasons:</strong> {showDetails.seasons}
+                            </Card.Text>
+                            <Card.Text>
+                                <strong>Episodes:</strong> {showDetails.episodes}
+                            </Card.Text>
+                        </Card.Body>
+                    </Card>
+                ) : (
+                    <Spinner animation="border" role="status">
+                        <span className="visually-hidden">Loading...</span>
+                    </Spinner>
+                )}
+            </Container>
+
+            {/* Edit Show Modal */}
+            <Modal show={editModalVisible} onHide={() => setEditModalVisible(false)}>
+                <Modal.Header closeButton>
+                    <Modal.Title>Edit Show</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <Form>
+                        <Form.Group className="mb-3">
+                            <Form.Label>Title</Form.Label>
+                            <Form.Control
+                                type="text"
+                                value={title}
+                                onChange={(e) => setTitle(e.target.value)}
+                            />
+                        </Form.Group>
+                        <Form.Group className="mb-3">
+                            <Form.Label>Description</Form.Label>
+                            <Form.Control
+                                as="textarea"
+                                rows={3}
+                                value={description}
+                                onChange={(e) => setDescription(e.target.value)}
+                            />
+                        </Form.Group>
+                    </Form>
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="secondary" onClick={() => setEditModalVisible(false)}>
+                        Close
+                    </Button>
+                    <Button variant="primary" onClick={handleEditShow}>
+                        Save Changes
+                    </Button>
+                </Modal.Footer>
+            </Modal>
+
+            {/* Add Season Modal */}
+            <Modal show={addSeasonModalVisible} onHide={() => setAddSeasonModalVisible(false)}>
+                <Modal.Header closeButton>
+                    <Modal.Title>Add Season</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <Form>
+                        <Form.Group className="mb-3">
+                            <Form.Label>Season Number</Form.Label>
+                            <Form.Control
+                                type="number"
+                                value={seasonNumber}
+                                onChange={(e) => setSeasonNumber(Number(e.target.value))}
+                            />
+                        </Form.Group>
+                    </Form>
+                    <Table striped bordered hover>
+                        <thead>
+                            <tr>
+                                <th>Select</th>
+                                <th>Video ID</th>
+                                <th>Title</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {videos.map((video) => (
+                                <tr key={video.id}>
+                                    <td>
+                                        <Form.Check type="checkbox" />
+                                    </td>
+                                    <td>{video.id}</td>
+                                    <td>{video.title}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </Table>
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="secondary" onClick={() => setAddSeasonModalVisible(false)}>
+                        Close
+                    </Button>
+                    <Button variant="success" onClick={handleAddSeason}>
+                        Add Season
+                    </Button>
+                </Modal.Footer>
+            </Modal>
+        </>
     );
 };
 

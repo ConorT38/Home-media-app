@@ -5,7 +5,7 @@ import { Navbar, Container, Nav, NavDropdown } from "react-bootstrap";
 const NavigationBar: React.FC = () => {
   return (
     <>
-      <Navbar className="bg-body-tertiary">
+      <Navbar collapseOnSelect expand="lg" bg="dark" variant="dark">
         <Container>
           <Navbar.Brand href="/">
             <img
@@ -17,6 +17,7 @@ const NavigationBar: React.FC = () => {
             />{' '}
             Home media
           </Navbar.Brand>
+          <Navbar.Toggle aria-controls="responsive-navbar-nav" />
           <Navbar.Collapse id="basic-navbar-nav">
             <Nav className="me-auto">
               <Nav.Link href="/movies">Movies</Nav.Link>
@@ -24,9 +25,11 @@ const NavigationBar: React.FC = () => {
               <Nav.Link href="/images">Images</Nav.Link>
               <Nav.Link href="/torrents">Torrents</Nav.Link>
             </Nav>
+            <Nav>
+              <SearchBar />
+            </Nav>
           </Navbar.Collapse>
         </Container>
-        <SearchBar />
       </Navbar>
       <br />
     </>

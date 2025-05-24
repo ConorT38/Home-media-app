@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { getHostEndpoint } from "../../utils/common";
+import { Container, Row, Col, Card, Alert, Pagination, Form } from "react-bootstrap";
 
 const ViewShowsPage: React.FC = () => {
     const [mediaResults, setMediaResults] = useState([]);
@@ -60,88 +61,83 @@ const ViewShowsPage: React.FC = () => {
     };
 
     return (
-        <div className="App">
-            <div className="container py-5">
-                {/* Search Bar */}
-                <div className="row mb-4">
-                    <div className="col-md-12">
-                        <input
-                            type="text"
-                            className="form-control"
-                            placeholder="Search for shows..."
-                            value={searchQuery}
-                            onChange={handleSearchChange}
-                        />
-                    </div>
-                </div>
+        <Container>
+            <Row className="mb-4">
+                <Col className="d-flex justify-content-end">
+                    <a href="/shows/create" className="btn btn-primary">
+                        Create
+                    </a>
+                </Col>
+            </Row>
+            {/* Search Bar */}
+            <Row className="mb-4">
+                <Col>
+                    <Form.Control
+                        type="text"
+                        placeholder="Search for shows..."
+                        value={searchQuery}
+                        onChange={handleSearchChange}
+                    />
+                </Col>
+            </Row>
 
-                {/* Results Section */}
-                <div className="row">
-                    {!errorLoading ? (
-                        mediaResults?.map((object: any) => (
-                            <div className="col-md-4 col-sm-6 mb-4" key={object.id}>
-                                <div className="card h-100">
-                                    <div className="card-body">
-                                        <h5 className="card-title">
-                                            <a
-                                                href={"/video/" + object.id}
-                                                style={{
-                                                    textDecoration: "none",
-                                                    color: "greenyellow",
-                                                }}
-                                            >
-                                                {object.title}
-                                            </a>
-                                        </h5>
-                                        <p className="card-text">
-                                            {object.description}
-                                        </p>
-                                        <p className="card-text">
-                                            <strong>Seasons:</strong> {object.seasons}
-                                        </p>
-                                        <p className="card-text">
-                                            <strong>Episodes:</strong> {object.episodes}
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                        ))
-                    ) : (
-                        <div className="col-md-12">
-                            <div className="alert alert-danger" role="alert">
-                                Error occurred getting media results.
-                            </div>
-                        </div>
-                    )}
-                </div>
+            {/* Results Section */}
+            <Row>
+                {!errorLoading ? (
+                    mediaResults?.map((object: any) => (
+                        <Col md={4} sm={6} className="mb-4" key={object.id}>
+                            <Card className="h-100">
+                                <Card.Body>
+                                    <Card.Title>
+                                        <a
+                                            href={"/shows/" + object.id}
+                                            style={{
+                                                textDecoration: "none",
+                                                color: "greenyellow",
+                                            }}
+                                        >
+                                            {object.name}
+                                        </a>
+                                    </Card.Title>
+                                    <Card.Text>{object.description}</Card.Text>
+                                    <Card.Text>
+                                        <strong>Seasons:</strong> {object.seasons}
+                                    </Card.Text>
+                                    <Card.Text>
+                                        <strong>Episodes:</strong> {object.episodes}
+                                    </Card.Text>
+                                </Card.Body>
+                            </Card>
+                        </Col>
+                    ))
+                ) : (
+                    <Col>
+                        <Alert variant="danger">
+                            Error occurred getting media results.
+                        </Alert>
+                    </Col>
+                )}
+            </Row>
 
-                {/* Pagination */}
-                <div className="row mt-4">
-                    <div className="col-md-12 d-flex justify-content-center">
-                        <nav>
-                            <ul className="pagination">
-                                <li className={`page-item ${currentPage === 1 ? "disabled" : ""}`}>
-                                    <button
-                                        className="page-link"
-                                        onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                                    >
-                                        Previous
-                                    </button>
-                                </li>
-                                <li className="page-item">
-                                    <button
-                                        className="page-link"
-                                        onClick={() => setCurrentPage((prev) => prev + 1)}
-                                    >
-                                        Next
-                                    </button>
-                                </li>
-                            </ul>
-                        </nav>
-                    </div>
-                </div>
-            </div>
-        </div>
+            {/* Pagination */}
+            <Row className="mt-4">
+                <Col className="d-flex justify-content-center">
+                    <Pagination>
+                        <Pagination.Prev
+                            disabled={currentPage === 1}
+                            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                        >
+                            Previous
+                        </Pagination.Prev>
+                        <Pagination.Next
+                            onClick={() => setCurrentPage((prev) => prev + 1)}
+                        >
+                            Next
+                        </Pagination.Next>
+                    </Pagination>
+                </Col>
+            </Row>
+        </Container>
     );
 };
 

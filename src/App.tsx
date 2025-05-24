@@ -5,6 +5,8 @@ import Landing from "./pages/Landing";
 import VideoContent from "./pages/Video";
 import ViewShowsPage from "./pages/Shows/ViewShowsPage";
 import NavigationBar from "./components/NavigationBar/NavigationBar";
+import CreateShowPage from "./pages/Shows/CreateShowPage";
+import ShowDetailsPage from "./pages/Shows/ShowDetailsPage";
 
 const App: React.FC = () => {
   return (
@@ -16,6 +18,9 @@ const App: React.FC = () => {
           <Route path="/search/:query" element={<SearchPage />} />
           <Route path="/video/:id" element={<VideoContent />} />
           <Route path="/shows" element={<ViewShowsPage />} />
+          <Route path="/shows/create" element={<CreateShowPage />} />
+          <Route path="/shows/:id" element={<ShowDetailsPage />} />
+
         </Routes>
       </BrowserRouter>
     </>

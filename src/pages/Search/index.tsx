@@ -1,28 +1,36 @@
 import React, { useEffect, useState } from "react";
 import SearchResultsList from "../../components/Search/SearchResultsList";
-import NavigationBar from "../../components/NavigationBar/NavigationBar";
 import { useLocation } from "react-router-dom";
-import { getHostEndpoint } from "../../utils/common";
+import { getHostAPIEndpoint } from "../../utils/common";
+import { Container, Spinner, Pagination } from "react-bootstrap";
 
 export const SearchPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [currentTab, setCurrentTab] = useState<number>(0);
   const [errorLoading, setErrorLoading] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [totalPages, setTotalPages] = useState<number>(1);
 
   const location = useLocation();
-  async function getSearchResults(searchTerm: string) {
+
+  async function getSearchResults(searchTerm: string, page: number = 1) {
+    setIsLoading(true);
     try {
       const response = await fetch(
-        `${getHostEndpoint()}/api/search/${searchTerm}`
+        `${getHostAPIEndpoint()}/search/${searchTerm}?page=${page}`
       );
       if (!response.ok) throw new Error(response.status.toString());
       const result = await response.json();
       console.log(result);
-      setSearchResults(result);
+      setSearchResults(result.data || []);
+      setTotalPages(result.pagination.totalPages || 1);
+      setIsLoading(false);
     } catch (error) {
       console.error("Error fetching search results:", error);
       setErrorLoading(true);
+      setIsLoading(false);
     }
   }
 
@@ -32,23 +40,25 @@ export const SearchPage: React.FC = () => {
       if (searchParam) {
         const decodedParam = decodeURI(searchParam);
         setSearchTerm(decodedParam);
-        await getSearchResults(decodedParam);
+        await getSearchResults(decodedParam, currentPage);
       }
     };
     fetchSearchResults();
-  }, [location]);
+  }, [location, currentPage]);
 
-  useEffect(() => {
-    const fetchSearchResults = async () => {
-      const searchParam = window.location.href.match(/(?<=\/search\/).*/)?.[0];
-      if (searchParam) {
-        const decodedParam = decodeURI(searchParam);
-        setSearchTerm(decodedParam);
-        await getSearchResults(decodedParam);
-      }
-    };
-    fetchSearchResults();
-  }, []);
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  if (isLoading) {
+    return (
+      <Container>
+        <Spinner animation="border" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </Spinner>
+      </Container>
+    );
+  }
 
   return (
     <React.Fragment>
@@ -62,7 +72,7 @@ export const SearchPage: React.FC = () => {
                   className={
                     "nav-item nav-link " + (currentTab === 0 ? "active" : "")
                   }
-                  onClick={(e) => setCurrentTab(0)}
+                  onClick={() => setCurrentTab(0)}
                   id="nav-home-tab"
                   href="javascript:;"
                 >
@@ -72,7 +82,7 @@ export const SearchPage: React.FC = () => {
                   className={
                     "nav-item nav-link " + (currentTab === 1 ? "active" : "")
                   }
-                  onClick={(e) => setCurrentTab(1)}
+                  onClick={() => setCurrentTab(1)}
                   id="nav-profile-tab"
                   href="javascript:;"
                 >
@@ -82,7 +92,7 @@ export const SearchPage: React.FC = () => {
                   className={
                     "nav-item nav-link " + (currentTab === 2 ? "active" : "")
                   }
-                  onClick={(e) => setCurrentTab(2)}
+                  onClick={() => setCurrentTab(2)}
                   id="nav-contact-tab"
                   href="javascript:;"
                 >
@@ -96,6 +106,33 @@ export const SearchPage: React.FC = () => {
               <div>
                 <br />
                 <SearchResultsList searchResults={searchResults} />
+                <Pagination>
+                  <Pagination.First
+                    onClick={() => handlePageChange(1)}
+                    disabled={currentPage === 1}
+                  />
+                  <Pagination.Prev
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                  />
+                  {Array.from({ length: totalPages }, (_, index) => (
+                    <Pagination.Item
+                      key={index + 1}
+                      active={index + 1 === currentPage}
+                      onClick={() => handlePageChange(index + 1)}
+                    >
+                      {index + 1}
+                    </Pagination.Item>
+                  ))}
+                  <Pagination.Next
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                  />
+                  <Pagination.Last
+                    onClick={() => handlePageChange(totalPages)}
+                    disabled={currentPage === totalPages}
+                  />
+                </Pagination>
               </div>
             )}
           </>

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import NavigationBar from "../../components/NavigationBar/NavigationBar";
 import { getHostEndpoint } from "../../utils/common";
 
-const Landing: React.FC = () => {
+const EditShowPage: React.FC = () => {
     const [mediaResults, setMediaResults] = useState([]);
     const [currentTab, setCurrentTab] = useState(0);
     const [errorLoading, setErrorLoading] = useState(false);
@@ -117,4 +117,4 @@ const Landing: React.FC = () => {
     );
 };
 
-export default Landing;
+export default EditShowPage;
