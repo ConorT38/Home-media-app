@@ -7,22 +7,28 @@ import ViewShowsPage from "./pages/Shows/ViewShowsPage";
 import NavigationBar from "./components/NavigationBar/NavigationBar";
 import CreateShowPage from "./pages/Shows/CreateShowPage";
 import ShowDetailsPage from "./pages/Shows/ShowDetailsPage";
+import SearchTorrentsPage from "./pages/Torrents/SearchTorrentsPage";
+import { QueryClientProvider } from "react-query";
+import queryClient from "./hooks/queryClient";
 
 const App: React.FC = () => {
   return (
     <>
-      <BrowserRouter>
-        <NavigationBar />
-        <Routes>
-          <Route path="/" element={<Landing />} />
-          <Route path="/search/:query" element={<SearchPage />} />
-          <Route path="/video/:id" element={<VideoContent />} />
-          <Route path="/shows" element={<ViewShowsPage />} />
-          <Route path="/show/create" element={<CreateShowPage />} />
-          <Route path="/show/:id" element={<ShowDetailsPage />} />
+      <QueryClientProvider client={queryClient}>
+        <BrowserRouter>
+          <NavigationBar />
+          <Routes>
+            <Route path="/" element={<Landing />} />
+            <Route path="/search/:query" element={<SearchPage />} />
+            <Route path="/video/:id" element={<VideoContent />} />
+            <Route path="/shows" element={<ViewShowsPage />} />
+            <Route path="/show/create" element={<CreateShowPage />} />
+            <Route path="/show/:id" element={<ShowDetailsPage />} />
+            <Route path="/torrents" element={<SearchTorrentsPage />} />
 
-        </Routes>
-      </BrowserRouter>
+          </Routes>
+        </BrowserRouter>
+      </QueryClientProvider>
     </>
   );
 };
