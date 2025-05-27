@@ -5,6 +5,7 @@ import { faCheck, faEdit } from "@fortawesome/free-solid-svg-icons";
 import { useLocation } from "react-router-dom";
 import { getHostAPIEndpoint, getHostEndpoint } from "../../utils/common";
 import { Spinner } from "react-bootstrap";
+import ReactPlayer from "react-player";
 
 async function getSearchResults(videoId: string) {
   if (!videoId) return console.error("No videoId provided");
@@ -90,17 +91,15 @@ const VideoContent: React.FC = () => {
           onMouseEnter={() => setIsControlsEnabled(true)}
           onMouseLeave={() => setIsControlsEnabled(false)}
         >
-          <Video
+          <ReactPlayer
             controls={isControlsEnabled}
-            src={
+            url={
               window.location.hostname === "localhost"
                 ? "http://192.168.0.23:8000" + cdnPath
                 : getHostEndpoint() + ":8000" + cdnPath
             }
-            seekPreview={true}
-            height={""}
-            width={""}
-            poster={""} // poster="https://www.example.com/poster.png"
+            width="100%"
+            height="100%"
           />
         </div>
         <div className="row">

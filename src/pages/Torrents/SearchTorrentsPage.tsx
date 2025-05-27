@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Form, Button, Table, Spinner, Pagination, Container, Modal } from "react-bootstrap";
+import { Form, Button, Table, Spinner, Pagination, Container, Modal, Toast } from "react-bootstrap";
 import { useMutation, useQuery } from "react-query";
 import { TorrentSites } from "../../types/torrents";
 import { getHostAPIEndpoint } from "../../utils/common";
@@ -13,23 +13,16 @@ const fetchSearchResults = async (site: string, query: string) => {
 };
 
 const downloadTorrent = async (magnetUri: string, category: string) => {
-    try {
-        const response = await fetch(`${getHostAPIEndpoint()}/torrent/download`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ magnetUri, category }),
-        });
+    const response = await fetch(`${getHostAPIEndpoint()}/torrent/download`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ magnetUri, category }),
+    });
 
-        if (!response.ok) {
-            throw new Error("Failed to download torrent");
-        }
-
-        alert("Torrent download initiated successfully!");
-    } catch (error) {
-        console.error("Error downloading torrent:", error);
-        alert("An error occurred while downloading the torrent.");
+    if (!response.ok) {
+        throw new Error("Failed to download torrent");
     }
 };
 
@@ -40,6 +33,10 @@ const SearchTorrentsPage: React.FC = () => {
     const [showModal, setShowModal] = useState(false);
     const [selectedMagnet, setSelectedMagnet] = useState("");
     const [category, setCategory] = useState("");
+    const [showToast, setShowToast] = useState(false);
+    const [toastMessage, setToastMessage] = useState("");
+    const [toastVariant, setToastVariant] = useState("success");
+    const [downloading, setDownloading] = useState<string | null>(null);
 
     const { data, isLoading, refetch } = useQuery(
         ["searchResults", site, query],
@@ -55,10 +52,16 @@ const SearchTorrentsPage: React.FC = () => {
         {
             onError: (error) => {
                 console.error("Error initiating download:", error);
-                alert("Failed to initiate torrent download.");
+                setToastMessage("Failed to initiate torrent download.");
+                setToastVariant("danger");
+                setShowToast(true);
+                setDownloading(null);
             },
             onSuccess: () => {
-                alert("Torrent download initiated successfully!");
+                setToastMessage("Torrent download initiated successfully!");
+                setToastVariant("success");
+                setShowToast(true);
+                setDownloading(null);
             },
         }
     );
@@ -68,7 +71,9 @@ const SearchTorrentsPage: React.FC = () => {
             setCurrentPage(1); // Reset to first page on new search
             refetch();
         } else {
-            alert("Please enter both site and query.");
+            setToastMessage("Please enter both site and query.");
+            setToastVariant("warning");
+            setShowToast(true);
         }
     };
 
@@ -83,11 +88,14 @@ const SearchTorrentsPage: React.FC = () => {
 
     const handleModalDownload = () => {
         if (category) {
+            setDownloading(selectedMagnet);
             initiateDownload({ magnetUri: selectedMagnet, category });
             setShowModal(false);
             setCategory(""); // Reset category
         } else {
-            alert("Please select a category.");
+            setToastMessage("Please select a category.");
+            setToastVariant("warning");
+            setShowToast(true);
         }
     };
 
@@ -155,16 +163,19 @@ const SearchTorrentsPage: React.FC = () => {
                                             <Button
                                                 variant="success"
                                                 onClick={() => handleDownloadClick(result.magnet)}
-                                                disabled={isLoading}
+                                                disabled={downloading === result.magnet}
                                             >
-                                                {isLoading ? (
-                                                    <Spinner
-                                                        as="span"
-                                                        animation="border"
-                                                        size="sm"
-                                                        role="status"
-                                                        aria-hidden="true"
-                                                    />
+                                                {downloading === result.magnet ? (
+                                                    <>
+                                                        <Spinner
+                                                            as="span"
+                                                            animation="border"
+                                                            size="sm"
+                                                            role="status"
+                                                            aria-hidden="true"
+                                                        />{" "}
+                                                        Downloading...
+                                                    </>
                                                 ) : (
                                                     "Download"
                                                 )}
@@ -221,6 +232,16 @@ const SearchTorrentsPage: React.FC = () => {
                     </Button>
                 </Modal.Footer>
             </Modal>
+
+            <Toast
+                onClose={() => setShowToast(false)}
+                show={showToast}
+                delay={3000}
+                autohide
+                className={`position-fixed bottom-0 end-0 m-3 bg-${toastVariant}`}
+            >
+                <Toast.Body>{toastMessage}</Toast.Body>
+            </Toast>
         </Container>
     );
 };
