@@ -10,6 +10,8 @@ import ShowDetailsPage from "./pages/Shows/ShowDetailsPage";
 import SearchTorrentsPage from "./pages/Torrents/SearchTorrentsPage";
 import { QueryClientProvider } from "react-query";
 import queryClient from "./hooks/queryClient";
+import ErrorPage from "./pages/ErrorPage";
+import MyTorrentsPage from "./pages/Torrents/MyTorrentsPage";
 
 const App: React.FC = () => {
   return (
@@ -24,8 +26,9 @@ const App: React.FC = () => {
             <Route path="/shows" element={<ViewShowsPage />} />
             <Route path="/show/create" element={<CreateShowPage />} />
             <Route path="/show/:id" element={<ShowDetailsPage />} />
-            <Route path="/torrents" element={<SearchTorrentsPage />} />
-
+            <Route path="/torrents/search" element={<SearchTorrentsPage />} />
+            <Route path="/torrents/my-torrents" element={<MyTorrentsPage />} />
+            <Route path="*" element={<ErrorPage />} />
           </Routes>
         </BrowserRouter>
       </QueryClientProvider>

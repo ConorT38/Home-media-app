@@ -23,7 +23,10 @@ const NavigationBar: React.FC = () => {
               <Nav.Link href="/movies">Movies</Nav.Link>
               <Nav.Link href="/shows">Shows</Nav.Link>
               <Nav.Link href="/images">Images</Nav.Link>
-              <Nav.Link href="/torrents">Torrents</Nav.Link>
+              <NavDropdown title="Torrents" id="torrents-dropdown">
+                <NavDropdown.Item href="/torrents/search">Search</NavDropdown.Item>
+                <NavDropdown.Item href="/torrents/my-torrents">My Torrents</NavDropdown.Item>
+              </NavDropdown>
             </Nav>
             <Nav>
               <SearchBar />

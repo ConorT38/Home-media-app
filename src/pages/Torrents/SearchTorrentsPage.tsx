@@ -1,25 +1,25 @@
 import React, { useState } from "react";
-import { Form, Button, Table, Spinner, Pagination, Container } from "react-bootstrap";
+import { Form, Button, Table, Spinner, Pagination, Container, Modal } from "react-bootstrap";
 import { useMutation, useQuery } from "react-query";
 import { TorrentSites } from "../../types/torrents";
 import { getHostAPIEndpoint } from "../../utils/common";
 
 const fetchSearchResults = async (site: string, query: string) => {
-    const response = await fetch(`http://192.168.0.25:8009/api/v1/search?site=${site}&query=${query}`);
+    const response = await fetch(`${getHostAPIEndpoint()}/torrent/search?site=${site}&query=${query}`);
     if (!response.ok) {
         throw new Error("Failed to fetch search results");
     }
     return response.json();
 };
 
-const downloadTorrent = async (magnetUri: string) => {
+const downloadTorrent = async (magnetUri: string, category: string) => {
     try {
         const response = await fetch(`${getHostAPIEndpoint()}/torrent/download`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify({ magnetUri }),
+            body: JSON.stringify({ magnetUri, category }),
         });
 
         if (!response.ok) {
@@ -37,6 +37,9 @@ const SearchTorrentsPage: React.FC = () => {
     const [site, setSite] = useState("");
     const [query, setQuery] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
+    const [showModal, setShowModal] = useState(false);
+    const [selectedMagnet, setSelectedMagnet] = useState("");
+    const [category, setCategory] = useState("");
 
     const { data, isLoading, refetch } = useQuery(
         ["searchResults", site, query],
@@ -47,7 +50,8 @@ const SearchTorrentsPage: React.FC = () => {
     );
 
     const { mutate: initiateDownload } = useMutation(
-        async (magnetUri: string) => await downloadTorrent(magnetUri),
+        async ({ magnetUri, category }: { magnetUri: string; category: string }) =>
+            await downloadTorrent(magnetUri, category),
         {
             onError: (error) => {
                 console.error("Error initiating download:", error);
@@ -70,6 +74,21 @@ const SearchTorrentsPage: React.FC = () => {
 
     const handlePageChange = (page: number) => {
         setCurrentPage(page);
+    };
+
+    const handleDownloadClick = (magnetUri: string) => {
+        setSelectedMagnet(magnetUri);
+        setShowModal(true);
+    };
+
+    const handleModalDownload = () => {
+        if (category) {
+            initiateDownload({ magnetUri: selectedMagnet, category });
+            setShowModal(false);
+            setCategory(""); // Reset category
+        } else {
+            alert("Please select a category.");
+        }
     };
 
     return (
@@ -135,7 +154,7 @@ const SearchTorrentsPage: React.FC = () => {
                                         <td>
                                             <Button
                                                 variant="success"
-                                                onClick={() => initiateDownload(result.magnet)}
+                                                onClick={() => handleDownloadClick(result.magnet)}
                                                 disabled={isLoading}
                                             >
                                                 {isLoading ? (
@@ -171,6 +190,37 @@ const SearchTorrentsPage: React.FC = () => {
                     <p className="text-center">No results found.</p>
                 )
             )}
+
+            <Modal show={showModal} onHide={() => setShowModal(false)}>
+                <Modal.Header closeButton>
+                    <Modal.Title>Select Category</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <Form>
+                        <Form.Group controlId="category">
+                            <Form.Label>Category</Form.Label>
+                            <Form.Select
+                                value={category}
+                                onChange={(e) => setCategory(e.target.value)}
+                            >
+                                <option value="">Select a category</option>
+                                <option value="movie">Movie</option>
+                                <option value="show">Show</option>
+                                <option value="game">Game</option>
+                                <option value="software">Software</option>
+                            </Form.Select>
+                        </Form.Group>
+                    </Form>
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="secondary" onClick={() => setShowModal(false)}>
+                        Cancel
+                    </Button>
+                    <Button variant="primary" onClick={handleModalDownload}>
+                        Download
+                    </Button>
+                </Modal.Footer>
+            </Modal>
         </Container>
     );
 };
