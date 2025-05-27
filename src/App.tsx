@@ -18,8 +18,8 @@ const App: React.FC = () => {
           <Route path="/search/:query" element={<SearchPage />} />
           <Route path="/video/:id" element={<VideoContent />} />
           <Route path="/shows" element={<ViewShowsPage />} />
-          <Route path="/shows/create" element={<CreateShowPage />} />
-          <Route path="/shows/:id" element={<ShowDetailsPage />} />
+          <Route path="/show/create" element={<CreateShowPage />} />
+          <Route path="/show/:id" element={<ShowDetailsPage />} />
 
         </Routes>
       </BrowserRouter>

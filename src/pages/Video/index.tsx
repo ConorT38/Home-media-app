@@ -1,10 +1,10 @@
-import React, { useState, useEffect, ReactNode } from "react";
-import NavigationBar from "../../components/NavigationBar/NavigationBar";
+import React, { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Video } from "reactjs-media";
 import { faCheck, faEdit } from "@fortawesome/free-solid-svg-icons";
 import { useLocation } from "react-router-dom";
 import { getHostAPIEndpoint, getHostEndpoint } from "../../utils/common";
+import { Spinner } from "react-bootstrap";
 
 async function getSearchResults(videoId: string) {
   if (!videoId) return console.error("No videoId provided");
@@ -18,14 +18,17 @@ const VideoContent: React.FC = () => {
   const [videoId, setVideoId] = useState("");
   const [editedTitle, setEditedTitle] = useState(title);
   const [views, setViews] = useState("");
-  const [videoPlayer, setVideoPlayer] = useState<ReactNode | null>(null);
+  const [cdnPath, setCdnPath] = useState("");
   const [uploaded, setUploaded] = useState("");
   const [isEditMode, setIsEditMode] = useState(false);
+  const [isControlsEnabled, setIsControlsEnabled] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const location = useLocation();
 
   useEffect(() => {
     if (location.pathname) {
+      setIsLoading(true);
       const matchedValue = location.pathname.match(/(?<=\/video\/).*/);
       if (matchedValue) {
         const id = decodeURI(matchedValue[0]);
@@ -34,19 +37,13 @@ const VideoContent: React.FC = () => {
             setTitle(result[0].title);
             setVideoId(result[0].id);
             setViews(result[0].views);
-            setVideoPlayer(
-              <Video
-                controls={true}
-                src={getHostEndpoint() + ":8000" + result[0].cdn_path}
-                height={""}
-                width={""}
-                poster={""} // poster="https://www.example.com/poster.png"
-              />
-            );
+            setCdnPath(result[0].cdn_path);
             setUploaded(result[0].uploaded);
+            setIsLoading(false);
           },
           (error) => {
             console.error(error);
+            setIsLoading(false);
           }
         );
       }
@@ -80,10 +77,32 @@ const VideoContent: React.FC = () => {
     }
   };
 
+  if (isLoading) {
+    return (<Spinner animation="border" role="status">
+      <span className="visually-hidden">Loading...</span>
+    </Spinner>);
+  }
+
   return (
     <React.Fragment>
       <div className="container">
-        <div className="row">{videoPlayer}</div>
+        <div
+          onMouseEnter={() => setIsControlsEnabled(true)}
+          onMouseLeave={() => setIsControlsEnabled(false)}
+        >
+          <Video
+            controls={isControlsEnabled}
+            src={
+              window.location.hostname === "localhost"
+                ? "http://192.168.0.23:8000" + cdnPath
+                : getHostEndpoint() + ":8000" + cdnPath
+            }
+            seekPreview={true}
+            height={""}
+            width={""}
+            poster={""} // poster="https://www.example.com/poster.png"
+          />
+        </div>
         <div className="row">
           <br />
           <div className="col">

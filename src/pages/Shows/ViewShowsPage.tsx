@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { getHostEndpoint } from "../../utils/common";
+import { getHostAPIEndpoint } from "../../utils/common";
 import { Container, Row, Col, Card, Alert, Pagination, Form } from "react-bootstrap";
 
 const ViewShowsPage: React.FC = () => {
@@ -46,8 +46,8 @@ const ViewShowsPage: React.FC = () => {
 
     useEffect(() => {
         const endpoint = searchQuery
-            ? `${getHostEndpoint()}:8081/api/search?query=${searchQuery}&page=${currentPage}`
-            : `${getHostEndpoint()}:8081/api/shows?page=${currentPage}`;
+            ? `${getHostAPIEndpoint()}/search?query=${searchQuery}&page=${currentPage}`
+            : `${getHostAPIEndpoint()}/show?page=${currentPage}`;
         if (searchQuery) {
             searchShows(endpoint);
         } else {
