@@ -12,7 +12,9 @@ const fetchTorrents = async () => {
 };
 
 const MyTorrentsPage: React.FC = () => {
-    const { data, isLoading, isError } = useQuery('torrents', fetchTorrents);
+    const { data, isLoading, isError } = useQuery('torrents', fetchTorrents, {
+        refetchInterval: 5000,
+    });
 
     if (isLoading) {
         return (
