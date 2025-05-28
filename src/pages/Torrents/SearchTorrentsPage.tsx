@@ -215,9 +215,9 @@ const SearchTorrentsPage: React.FC = () => {
                                 onChange={(e) => setCategory(e.target.value)}
                             >
                                 <option value="">Select a category</option>
-                                <option value="movie">Movie</option>
-                                <option value="show">Show</option>
-                                <option value="game">Game</option>
+                                <option value="movies">Movie</option>
+                                <option value="shows">Show</option>
+                                <option value="games">Game</option>
                                 <option value="software">Software</option>
                             </Form.Select>
                         </Form.Group>
