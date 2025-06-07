@@ -130,7 +130,7 @@ const VideoContent: React.FC = () => {
             ) : (
               <button
                 type="button"
-                className="btn btn-outline-success"
+                 className="btn btn-outline-success"
                 onClick={() => handleEditVideoName(editedTitle)}
               >
                 Submit <FontAwesomeIcon icon={faCheck} />
