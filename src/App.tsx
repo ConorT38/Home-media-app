@@ -26,8 +26,11 @@ const App: React.FC = () => {
             <Route path="/shows" element={<ViewShowsPage />} />
             <Route path="/show/create" element={<CreateShowPage />} />
             <Route path="/show/:id" element={<ShowDetailsPage />} />
+            <Route path="/show/:id/season/:seasonNumber" element={<ShowDetailsPage />} />
+            <Route path="/show/:id/season/:seasonNumber/epidsode/:episodeNumber" element={<ShowDetailsPage />} />
             <Route path="/torrents/search" element={<SearchTorrentsPage />} />
             <Route path="/torrents/my-torrents" element={<MyTorrentsPage />} />
+            
             <Route path="*" element={<ErrorPage />} />
           </Routes>
         </BrowserRouter>
