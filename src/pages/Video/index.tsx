@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { Video } from "reactjs-media";
 import { faCheck, faEdit } from "@fortawesome/free-solid-svg-icons";
 import { useLocation } from "react-router-dom";
 import { getHostAPIEndpoint, getHostEndpoint } from "../../utils/common";
@@ -35,11 +34,12 @@ const VideoContent: React.FC = () => {
         const id = decodeURI(matchedValue[0]);
         getSearchResults(id).then(
           (result) => {
-            setTitle(result[0].title);
-            setVideoId(result[0].id);
-            setViews(result[0].views);
-            setCdnPath(result[0].cdn_path);
-            setUploaded(result[0].uploaded);
+            console.log(result);
+            setTitle(result?.title);
+            setVideoId(result?.id);
+            setViews(result?.views);
+            setCdnPath(result?.cdn_path);
+            setUploaded(result?.uploaded);
             setIsLoading(false);
           },
           (error) => {

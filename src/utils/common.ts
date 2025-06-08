@@ -7,8 +7,5 @@ export function getHostEndpoint() {
 }
 
 export function getHostAPIEndpoint() {
-    const { protocol, hostname } = window.location; // Use `hostname` instead of `host`
-    console.log("Protocol:", protocol);
-    console.log("Hostname:", hostname);
     return `${getHostEndpoint()}:8081/api`;
 }

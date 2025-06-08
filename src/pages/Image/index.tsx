@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Container, Row, Col, Card, Pagination, Alert } from "react-bootstrap";
-import { getHostAPIEndpoint } from "../../utils/common";
+import { getHostAPIEndpoint, getHostEndpoint } from "../../utils/common";
 
 interface Image {
     id: number;
@@ -17,7 +17,7 @@ const ImagesPage: React.FC = () => {
     const fetchImages = async (page: number) => {
         try {
             setError(null); // Reset error state
-            const response = await fetch(`${getHostAPIEndpoint()}images/?page=${page}`);
+            const response = await fetch(`${getHostAPIEndpoint()}/image/?page=${page}`);
             if (!response.ok) {
                 throw new Error("Failed to fetch images");
             }
@@ -50,7 +50,7 @@ const ImagesPage: React.FC = () => {
                     images.map((image) => (
                         <Col key={image.id} xs={12} sm={6} md={4} lg={3} className="mb-4">
                             <Card>
-                                <Card.Img variant="top" src={image.cdn_path} alt={`Image ${image.id}`} />
+                                <Card.Img variant="top" src={getHostEndpoint()+':8000'+image.cdn_path} alt={`Image ${image.id}`} />
                                 <Card.Body>
                                     <Card.Title>Uploaded: {new Date(image.uploaded).toLocaleDateString()}</Card.Title>
                                 </Card.Body>
