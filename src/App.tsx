@@ -12,6 +12,7 @@ import { QueryClientProvider } from "react-query";
 import queryClient from "./hooks/queryClient";
 import ErrorPage from "./pages/ErrorPage";
 import MyTorrentsPage from "./pages/Torrents/MyTorrentsPage";
+import ImagesPage from "./pages/Image";
 
 const App: React.FC = () => {
   return (
@@ -30,7 +31,8 @@ const App: React.FC = () => {
             <Route path="/show/:id/season/:seasonNumber/epidsode/:episodeNumber" element={<ShowDetailsPage />} />
             <Route path="/torrents/search" element={<SearchTorrentsPage />} />
             <Route path="/torrents/my-torrents" element={<MyTorrentsPage />} />
-            
+            <Route path="/images" element={<ImagesPage />} />
+
             <Route path="*" element={<ErrorPage />} />
           </Routes>
         </BrowserRouter>

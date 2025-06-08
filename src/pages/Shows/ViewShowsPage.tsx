@@ -62,15 +62,7 @@ const ViewShowsPage: React.FC = () => {
 
     return (
         <Container>
-            <Row className="mb-4">
-                <Col className="d-flex justify-content-end">
-                    <a href="/show/create" className="btn btn-primary">
-                        Create
-                    </a>
-                </Col>
-            </Row>
-            {/* Search Bar */}
-            <Row className="mb-4">
+            <Row className="mb-4 align-items-center">
                 <Col>
                     <Form.Control
                         type="text"
@@ -78,6 +70,11 @@ const ViewShowsPage: React.FC = () => {
                         value={searchQuery}
                         onChange={handleSearchChange}
                     />
+                </Col>
+                <Col xs="auto">
+                    <a href="/show/create" className="btn btn-primary">
+                        Create
+                    </a>
                 </Col>
             </Row>
 
@@ -88,6 +85,10 @@ const ViewShowsPage: React.FC = () => {
                         <Col md={4} sm={6} className="mb-4" key={object.id}>
                             <Card className="h-100">
                                 <Card.Body>
+                                    <Card.Img
+                                        variant="top"
+                                        src={object.image || "https://c4.wallpaperflare.com/wallpaper/506/166/503/crime-drama-hbo-mafia-wallpaper-preview.jpg"}
+                                        alt={object.name}></Card.Img>
                                     <Card.Title>
                                         <a
                                             href={"/show/" + object.id}

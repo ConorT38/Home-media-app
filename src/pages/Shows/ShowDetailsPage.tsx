@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Button, Modal, Form, Table, Container, Row, Col, Card, Spinner } from "react-bootstrap";
+import { Button, Modal, Form, Table, Container, Card } from "react-bootstrap";
 import { getHostAPIEndpoint, getHostEndpoint } from "../../utils/common";
 import { useParams } from "react-router-dom";
 
@@ -70,60 +70,107 @@ const ShowDetailsPage: React.FC = () => {
 
     return (
         <>
-            <Container>
-                <Row className="mb-4">
-                    <Col>
-                        <h1>Show Details</h1>
-                    </Col>
-                    <Col className="text-end">
-                        <Button variant="primary" onClick={() => setEditModalVisible(true)}>
-                            Edit Show
-                        </Button>{" "}
+            <Container fluid className="position-relative" style={{ padding: 0, marginBottom: "2rem" }}>
+                <div style={{ position: "relative", overflow: "hidden", display: "flex", justifyContent: "center" }}>
+                    <img
+                        src="https://c4.wallpaperflare.com/wallpaper/506/166/503/crime-drama-hbo-mafia-wallpaper-preview.jpg"
+                        alt="Show Banner"
+                        className="img-fluid"
+                        style={{
+                            width: "80%",
+                            height: "auto",
+                            filter: "brightness(0.7)",
+                            objectFit: "cover",
+                            objectPosition: "top", // Focus on the top part of the image
+                            clipPath: "inset(0 0 33% 0)", // Remove the bottom third of the image
+                        }}
+                    />
+                    <div
+                        style={{
+                            position: "absolute",
+                            top: 0,
+                            left: '10%',
+                            display: "flex",
+                            flexDirection: "column",
+                            justifyContent: "flex-start",
+                            alignItems: "flex-start",
+                            padding: "2rem",
+                            color: "white",
+                            width: "80%", // Match the image width to keep text aligned within the image
+                        }}
+                    >
+                        <h1 style={{ marginBottom: "1rem" }}>{showDetails?.name || "Show Details"}</h1>
+                        <p style={{ maxWidth: "600px", marginBottom: "1rem" }}>{showDetails?.description}</p>
+                        <div>
+                            <Button variant="primary" onClick={() => setEditModalVisible(true)} style={{ marginRight: "0.5rem" }}>
+                                Edit Show
+                            </Button>
+                            <Button variant="success" onClick={() => setAddSeasonModalVisible(true)}>
+                                Add Season
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            </Container>
+            <Container className="mt-4">
+                {showDetails?.seasons && showDetails.seasons.length > 0 ? (
+                    showDetails.seasons.map((season: any) => (
+                        <Card key={season.id} className="mb-3">
+                            <Card.Header>
+                                <div className="d-flex justify-content-between align-items-center">
+                                    <span>Season {season.number}</span>
+                                    <Button
+                                        variant="link"
+                                        onClick={() => {
+                                            const element = document.getElementById(`season-${season.id}`);
+                                            if (element) {
+                                                element.classList.toggle("collapse");
+                                            }
+                                        }}
+                                    >
+                                        Toggle Episodes
+                                    </Button>
+                                </div>
+                            </Card.Header>
+                            <div id={`season-${season.id}`} className="collapse">
+                                <Card.Body>
+                                    {season.episodes && season.episodes.length > 0 ? (
+                                        season.episodes.map((episode: any) => (
+                                            <Card key={episode.id} className="mb-2">
+                                                <Card.Body>
+                                                    <h5>{episode.title}</h5>
+                                                    <p>{episode.description}</p>
+                                                </Card.Body>
+                                            </Card>
+                                        ))
+                                    ) : (
+                                        <p>No episodes available for this season.</p>
+                                    )}
+                                </Card.Body>
+                            </div>
+                        </Card>
+                    ))
+                ) : (
+                    <div className="text-center">
+                        <p>No seasons yet. Add a season to get started!</p>
                         <Button variant="success" onClick={() => setAddSeasonModalVisible(true)}>
                             Add Season
                         </Button>
-                    </Col>
-                </Row>
-
-                {errorLoading ? (
-                    <div className="alert alert-danger" role="alert">
-                        Error occurred getting show details.
                     </div>
-                ) : showDetails ? (
-                    <Card>
-                        <Card.Body>
-                            <Card.Title>{showDetails.name}</Card.Title>
-                            <Card.Text>{showDetails.description}</Card.Text>
-                            <Card.Text>
-                                <strong>Seasons:</strong> {showDetails.seasons}
-                            </Card.Text>
-                            <Card.Text>
-                                <strong>Episodes:</strong> {showDetails.episodes}
-                            </Card.Text>
-                        </Card.Body>
-                    </Card>
-                ) : (
-                    <Spinner animation="border" role="status">
-                        <span className="visually-hidden">Loading...</span>
-                    </Spinner>
                 )}
             </Container>
-
             {/* Edit Show Modal */}
-            <Modal show={editModalVisible} onHide={() => setEditModalVisible(false)}>
+            < Modal show={editModalVisible} onHide={() => setEditModalVisible(false)}>
                 <Modal.Header closeButton>
                     <Modal.Title>Edit Show</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
                     <Form>
-                        <Form.Group className="mb-3">
-                            <Form.Label>Title</Form.Label>
-                            <Form.Control
-                                type="text"
-                                value={title}
-                                onChange={(e) => setTitle(e.target.value)}
-                            />
-                        </Form.Group>
+                        <Form.Control
+                            type="text"
+                            value={title}
+                            onChange={(e) => setTitle(e.target.value)}
+                        />
                         <Form.Group className="mb-3">
                             <Form.Label>Description</Form.Label>
                             <Form.Control
@@ -143,10 +190,10 @@ const ShowDetailsPage: React.FC = () => {
                         Save Changes
                     </Button>
                 </Modal.Footer>
-            </Modal>
+            </Modal >
 
             {/* Add Season Modal */}
-            <Modal show={addSeasonModalVisible} onHide={() => setAddSeasonModalVisible(false)}>
+            < Modal show={addSeasonModalVisible} onHide={() => setAddSeasonModalVisible(false)}>
                 <Modal.Header closeButton>
                     <Modal.Title>Add Season</Modal.Title>
                 </Modal.Header>
@@ -190,7 +237,7 @@ const ShowDetailsPage: React.FC = () => {
                         Add Season
                     </Button>
                 </Modal.Footer>
-            </Modal>
+            </Modal >
         </>
     );
 };
