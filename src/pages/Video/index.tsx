@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCheck, faEdit } from "@fortawesome/free-solid-svg-icons";
 import { useLocation } from "react-router-dom";
-import { getHostAPIEndpoint, getHostEndpoint } from "../../utils/common";
+import { getCdnHostEndpoint, getHostAPIEndpoint, getHostEndpoint } from "../../utils/common";
 import { Spinner, Modal, Button, Form } from "react-bootstrap";
 import ReactPlayer from "react-player";
 
@@ -136,13 +136,11 @@ const VideoContent: React.FC = () => {
             <ReactPlayer
               light={<img src={thumbnailSrc} />}
               controls={isControlsEnabled}
-              url={
-                window.location.hostname === "localhost"
-                  ? "http://192.168.0.23:8000" + cdnPath
-                  : getHostEndpoint() + ":8000" + cdnPath
+              url={`${getCdnHostEndpoint()+ cdnPath}`
               }
               width="100%"
               height="100%"
+              style={{objectFit: "cover" }}
             />
           </div>
         ) : (
@@ -152,11 +150,8 @@ const VideoContent: React.FC = () => {
           >
             <ReactPlayer
               controls={isControlsEnabled}
-              url={
-                window.location.hostname === "localhost"
-                  ? "http://192.168.0.23:8000" + cdnPath
-                  : getHostEndpoint() + ":8000" + cdnPath
-              }
+              url={`${getCdnHostEndpoint()+ cdnPath}`}
+
               width="100%"
               height="100%"
             />

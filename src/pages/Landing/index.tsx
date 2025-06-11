@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import NavigationBar from "../../components/NavigationBar/NavigationBar";
-import { getHostEndpoint } from "../../utils/common";
+import { getCdnHostEndpoint, getHostEndpoint } from "../../utils/common";
 import { Button, Card, Col, Container, Row } from "react-bootstrap";
 import { Video } from "../../types";
 import { Link } from "react-router-dom";
@@ -44,20 +44,24 @@ const Landing: React.FC = () => {
           <Col key={index} xs={12} sm={6} md={4} lg={3} xl={2} className="d-flex justify-content-center mb-4">
             <Card style={{ width: "18rem" }}>
 
-              <Card.Body>
                 <Card.Img
-                  variant="top"
-                  src={'/default-thumbnail.jpg'}
-                  style={{ height: "200px", objectFit: "cover" }}
+                variant="top"
+                src={media?.thumbnail_path ? `${getCdnHostEndpoint()}${media?.thumbnail_path}` : '/default-thumbnail.jpg'}
+                style={{ height: "200px", objectFit: "cover" }}
                 />
-                <Card.Title><Link to={'/video/' + media.id} style={{ textDecoration: 'none' }}>{media.title}</Link></Card.Title>
+                <Card.Body>
+                <Card.Title>
+                  <Link to={'/video/' + media.id} style={{ textDecoration: 'none' }}>
+                  {media.title}
+                  </Link>
+                </Card.Title>
                 <Card.Text>
                   <Row>
-                    <Col><small>{media?.views + ' views'}</small></Col>
-                    <Col></Col>
+                  <Col><small>{media?.views + ' views'}</small></Col>
+                  <Col></Col>
                   </Row>
                 </Card.Text>
-              </Card.Body>
+                </Card.Body>
             </Card>
           </Col>
         ))}
