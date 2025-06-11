@@ -13,6 +13,7 @@ export interface Video {
     uploaded?: Date | null;
     views?: number;
     entertainment_type?: string | null;
+    thumbnail_src?: string | null;
 }
 
 export interface Show {
