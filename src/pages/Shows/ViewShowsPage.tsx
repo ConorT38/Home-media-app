@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { getHostAPIEndpoint } from "../../utils/common";
+import { getCdnHostEndpoint, getHostAPIEndpoint } from "../../utils/common";
 import { Container, Row, Col, Card, Alert, Pagination, Form } from "react-bootstrap";
 
 const ViewShowsPage: React.FC = () => {
@@ -87,7 +87,7 @@ const ViewShowsPage: React.FC = () => {
                                 <Card.Body>
                                     <Card.Img
                                         variant="top"
-                                        src={object.image || "https://c4.wallpaperflare.com/wallpaper/506/166/503/crime-drama-hbo-mafia-wallpaper-preview.jpg"}
+                                        src={getCdnHostEndpoint() + object.thumbnail_cdn_path}
                                         alt={object.name}></Card.Img>
                                     <Card.Title>
                                         <a

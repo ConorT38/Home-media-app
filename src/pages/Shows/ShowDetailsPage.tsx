@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Button, Modal, Form, Table, Container, Card } from "react-bootstrap";
-import { getHostAPIEndpoint, getHostEndpoint } from "../../utils/common";
+import { getCdnHostEndpoint, getHostAPIEndpoint, getHostEndpoint } from "../../utils/common";
 import { useParams } from "react-router-dom";
 
 const ShowDetailsPage: React.FC = () => {
@@ -11,6 +11,7 @@ const ShowDetailsPage: React.FC = () => {
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
     const [seasonNumber, setSeasonNumber] = useState(1);
+    const [thumbnailPath, setThumbnailPath] = useState("");
     const [videos, setVideos] = useState<any[]>([]);
 
     const { id: showId } = useParams<{ id: string }>(); // Extract show ID from route params
@@ -23,9 +24,11 @@ const ShowDetailsPage: React.FC = () => {
             })
             .then(
                 (result) => {
+                    console.log("Show details fetched:", result);
                     setShowDetails(result);
                     setTitle(result.name);
                     setDescription(result.description);
+                    setThumbnailPath(result.thumbnail_path);
                     setErrorLoading(false);
                 },
                 () => {
@@ -73,7 +76,7 @@ const ShowDetailsPage: React.FC = () => {
             <Container fluid className="position-relative" style={{ padding: 0, marginBottom: "2rem" }}>
                 <div style={{ position: "relative", overflow: "hidden", display: "flex", justifyContent: "center" }}>
                     <img
-                        src="https://c4.wallpaperflare.com/wallpaper/506/166/503/crime-drama-hbo-mafia-wallpaper-preview.jpg"
+                        src={getCdnHostEndpoint() + thumbnailPath}
                         alt="Show Banner"
                         className="img-fluid"
                         style={{
