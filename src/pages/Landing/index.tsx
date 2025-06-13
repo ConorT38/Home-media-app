@@ -127,8 +127,8 @@ const Landing: React.FC = () => {
               <Card.Img
                 variant="top"
                 src={
-                  media?.thumbnail_path
-                    ? `${getCdnHostEndpoint()}${media?.thumbnail_path}`
+                  media?.thumbnail_cdn_path
+                    ? `${getCdnHostEndpoint()}${media?.thumbnail_cdn_path}`
                     : "/default-thumbnail.jpg"
                 }
                 style={{ height: "200px", objectFit: "cover" }}
@@ -203,8 +203,8 @@ const Landing: React.FC = () => {
                   <Card.Img
                     variant="top"
                     src={
-                      media?.thumbnail_path
-                        ? `${getCdnHostEndpoint()}${media?.thumbnail_path}`
+                      media?.thumbnail_cdn_path
+                        ? `${getCdnHostEndpoint()}${media?.thumbnail_cdn_path}`
                         : "/default-thumbnail.jpg"
                     }
                     style={{ height: "200px", objectFit: "cover" }}
