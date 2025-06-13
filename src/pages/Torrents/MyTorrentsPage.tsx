@@ -73,7 +73,6 @@ const MyTorrentsPage: React.FC = () => {
                         <tr>
                             <th>ID</th>
                             <th>Name</th>
-                            <th>Done</th>
                             <th>Have</th>
                             <th>ETA</th>
                             <th>Up</th>
@@ -87,11 +86,12 @@ const MyTorrentsPage: React.FC = () => {
                         {data.map((torrent: any) => (
                             <tr key={torrent.id}>
                                 <td>{torrent.id}</td>
-                                <td>{torrent.name}</td>
                                 <td>
+                                    <div>{torrent.name}</div>
                                     <ProgressBar
                                         now={parseFloat(torrent.done.replace('%', ''))}
                                         label={`${torrent.done}%`}
+                                        style={{ marginTop: '0.25rem' }}
                                     />
                                 </td>
                                 <td>{torrent.have}</td>
