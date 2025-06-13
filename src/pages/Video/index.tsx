@@ -10,7 +10,10 @@ async function getSearchResults(videoId: string) {
   if (!videoId) return console.error("No videoId provided");
   return await fetch(getHostAPIEndpoint() + "/video/" + videoId).then(
     (res) => res.json()
-  );
+  ).catch((error) => {
+    console.error("Error fetching video details:", error);
+    throw new Error("Failed to fetch video details");
+  });
 }
 
 async function uploadImage(file: File) {
@@ -33,6 +36,7 @@ const VideoContent: React.FC = () => {
   const [uploaded, setUploaded] = useState("");
   const [isControlsEnabled, setIsControlsEnabled] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [errorFetching, setErrorFetching] = useState(false);
 
   // Modal state
   const [showModal, setShowModal] = useState(false);
@@ -41,6 +45,61 @@ const VideoContent: React.FC = () => {
   const [thumbnailLink, setThumbnailLink] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [thumbnailSrc, setThumbnailSrc] = useState("");
+
+  // Delete Modal state
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const handleDeleteImage = async () => {
+    setIsDeleting(true);
+    try {
+      const response = await fetch(
+        getHostAPIEndpoint() + "/video/" + videoId,
+        {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+      if (!response.ok) {
+        throw new Error("Failed to delete video");
+      }
+      setShowDeleteModal(false);
+      // Optionally, redirect or update state to reflect deletion
+      console.log("Video deleted successfully");
+      // Redirect to home or another page
+      window.location.href = "/";
+    } catch (error) {
+      console.error("Error deleting video:", error);
+      setShowDeleteModal(false);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      if (videoId) {
+        const key = "continueWatchingIds";
+        let ids: number[] = [];
+        try {
+          const stored = localStorage.getItem(key);
+          if (stored) {
+            ids = JSON.parse(stored).map((id: any) => parseInt(id, 10)).filter((id: any) => !isNaN(id));
+          }
+        } catch {}
+        const intId = parseInt(videoId, 10);
+        if (!isNaN(intId) && !ids.includes(intId)) {
+          ids.push(intId);
+          localStorage.setItem(key, JSON.stringify(ids));
+        }
+      }
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => {
+      handleBeforeUnload();
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [videoId]);
 
   const location = useLocation();
 
@@ -53,6 +112,12 @@ const VideoContent: React.FC = () => {
         setVideoId(id);
         getSearchResults(id).then(
           (result) => {
+            if(result?.error) {
+              setErrorFetching(true);
+              setTitle("Error fetching video details");
+              setIsLoading(false);
+              return;
+            }
             setTitle(result?.title);
             setEditedTitle(result?.title);
             setVideoId(result?.id);
@@ -70,6 +135,8 @@ const VideoContent: React.FC = () => {
           (error) => {
             console.error(error);
             setIsLoading(false);
+            setErrorFetching(true);
+            setTitle("Error fetching video details");
           }
         );
       }
@@ -117,6 +184,15 @@ const VideoContent: React.FC = () => {
     setIsSubmitting(false);
   };
 
+  if (errorFetching) {
+    return (
+      <div className="container">
+        <h5>Error fetching video details</h5>
+        <p>Please try again later.</p>
+      </div>
+    );
+  }
+
   if (isLoading) {
     return (
       <Spinner animation="border" role="status">
@@ -162,7 +238,7 @@ const VideoContent: React.FC = () => {
           <div className="col">
             <h5>{title}</h5>
           </div>
-          <div className="col align-self-end">
+          <div className="col d-flex justify-content-end gap-2">
             <button
               type="button"
               className="btn btn-outline-secondary"
@@ -170,12 +246,41 @@ const VideoContent: React.FC = () => {
             >
               Edit <FontAwesomeIcon icon={faEdit} />
             </button>
+            <button
+              type="button"
+              className="btn btn-outline-danger"
+              onClick={() => setShowDeleteModal(true)}
+            >
+              Delete
+            </button>
           </div>
         </div>
         <br />
         {views} views &middot; {new Date(uploaded).toLocaleDateString("en-US")}
         <hr />
-      </div>
+            </div>
+
+            {/* Delete Confirmation Modal */}
+            <Modal show={showDeleteModal} onHide={() => setShowDeleteModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Confirm Delete</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          Are you sure you want to delete this image? This action cannot be undone.
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowDeleteModal(false)}>
+            Cancel
+          </Button>
+          <Button
+            variant="danger"
+            onClick={handleDeleteImage}
+            disabled={isDeleting}
+          >
+            Delete
+          </Button>
+        </Modal.Footer>
+            </Modal>
 
       <Modal show={showModal} onHide={() => setShowModal(false)}>
         <Modal.Header closeButton>

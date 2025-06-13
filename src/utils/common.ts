@@ -11,5 +11,6 @@ export function getHostAPIEndpoint() {
 }
 
 export function getCdnHostEndpoint() {
-    return `${getHostEndpoint()}:8000`
+    return 'http://192.168.0.23:8000';
+    //return `${getHostEndpoint()}:8000`
 }

@@ -6,7 +6,7 @@ const NavigationBar: React.FC = () => {
   return (
     <>
       <Navbar collapseOnSelect expand="lg" bg="dark" variant="dark">
-        <Container>
+        <Container fluid style={{ maxWidth: "1600px" }}>
           <Navbar.Brand href="/">
             <img
               alt=""

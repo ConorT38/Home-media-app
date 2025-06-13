@@ -13,6 +13,11 @@ const ShowDetailsPage: React.FC = () => {
     const [seasonNumber, setSeasonNumber] = useState(1);
     const [thumbnailPath, setThumbnailPath] = useState("");
     const [videos, setVideos] = useState<any[]>([]);
+    const [searchTerm, setSearchTerm] = useState("");
+    const [selectedVideoIds, setSelectedVideoIds] = useState<number[]>([]);
+    const filteredVideos = videos.filter((video) =>
+        video.title.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
     const { id: showId } = useParams<{ id: string }>(); // Extract show ID from route params
 
@@ -71,6 +76,49 @@ const ShowDetailsPage: React.FC = () => {
         setAddSeasonModalVisible(false);
     };
 
+    const handleVideoSelect = (videoId: number) => {
+        setSelectedVideoIds((prevSelected) => {
+            if (prevSelected.includes(videoId)) {
+                return prevSelected.filter((id) => id !== videoId);
+            } else {
+                return [...prevSelected, videoId];
+            }
+        });
+    };
+    useEffect(() => {
+        if (showDetails && showDetails.thumbnail_id) {
+            fetch(`${getHostEndpoint()}:8081/api/image/${showDetails.thumbnail_id}`)
+                .then((response) => {
+                    if (!response.ok) throw new Error(response.statusText);
+                    return response.json();
+                })
+                .then((result) => {
+                    setThumbnailPath(result.cdn_path);
+                })
+                .catch((error) => {
+                    console.error("Error fetching thumbnail:", error);
+                });
+        }
+    }
+    , [showDetails]);
+    useEffect(() => {
+        fetch(`${getHostAPIEndpoint()}/video?limit=100`)
+            .then((response) => {
+                if (!response.ok) throw new Error(response.statusText);
+                return response.json();
+            })
+            .then(
+                (result) => {
+                    console.log("Videos fetched:", result);
+                    setVideos(result.items);
+                },
+                () => {
+                    setVideos([]);
+                }
+            );
+    }
+    , []);
+
     return (
         <>
             <Container fluid className="position-relative" style={{ padding: 0, marginBottom: "2rem" }}>
@@ -84,8 +132,8 @@ const ShowDetailsPage: React.FC = () => {
                             height: "auto",
                             filter: "brightness(0.7)",
                             objectFit: "cover",
-                            objectPosition: "top", // Focus on the top part of the image
-                            clipPath: "inset(0 0 33% 0)", // Remove the bottom third of the image
+                            objectPosition: "top",
+                            clipPath: "inset(0 0 33% 0)",
                         }}
                     />
                     <div
@@ -99,7 +147,7 @@ const ShowDetailsPage: React.FC = () => {
                             alignItems: "flex-start",
                             padding: "2rem",
                             color: "white",
-                            width: "80%", // Match the image width to keep text aligned within the image
+                            width: "80%",
                         }}
                     >
                         <h1 style={{ marginBottom: "1rem" }}>{showDetails?.name || "Show Details"}</h1>
@@ -163,7 +211,7 @@ const ShowDetailsPage: React.FC = () => {
                 )}
             </Container>
             {/* Edit Show Modal */}
-            < Modal show={editModalVisible} onHide={() => setEditModalVisible(false)}>
+            <Modal show={editModalVisible} onHide={() => setEditModalVisible(false)} >
                 <Modal.Header closeButton>
                     <Modal.Title>Edit Show</Modal.Title>
                 </Modal.Header>
@@ -196,7 +244,7 @@ const ShowDetailsPage: React.FC = () => {
             </Modal >
 
             {/* Add Season Modal */}
-            < Modal show={addSeasonModalVisible} onHide={() => setAddSeasonModalVisible(false)}>
+            <Modal show={addSeasonModalVisible} onHide={() => setAddSeasonModalVisible(false)} fullscreen>
                 <Modal.Header closeButton>
                     <Modal.Title>Add Season</Modal.Title>
                 </Modal.Header>
@@ -210,21 +258,99 @@ const ShowDetailsPage: React.FC = () => {
                                 onChange={(e) => setSeasonNumber(Number(e.target.value))}
                             />
                         </Form.Group>
+                        <Form.Group className="mb-3">
+                            <Form.Label>Search Videos</Form.Label>
+                            <Form.Control
+                                type="text"
+                                placeholder="Search by title..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                            />
+                        </Form.Group>
                     </Form>
                     <Table striped bordered hover>
                         <thead>
                             <tr>
                                 <th>Select</th>
+                                <th>Episode #</th>
+                                <th></th>
                                 <th>Video ID</th>
                                 <th>Title</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {videos.map((video) => (
+                            {selectedVideoIds.map((videoId, idx) => {
+                                const video = videos.find(v => v.id === videoId);
+                                if (!video) return null;
+                                return (
+                                    <tr key={video.id}>
+                                        <td>
+                                            <Form.Check
+                                                type="checkbox"
+                                                checked={true}
+                                                onChange={() => handleVideoSelect(video.id)}
+                                            />
+                                        </td>
+                                        <td>
+                                            <Form.Control
+                                                type="number"
+                                                min={1}
+                                                style={{ width: 70, display: "inline-block" }}
+                                                value={idx + 1}
+                                                onChange={e => {
+                                                    const newPos = Math.max(1, Math.min(selectedVideoIds.length, Number(e.target.value)));
+                                                    if (newPos === idx + 1) return;
+                                                    // Move videoId to newPos-1
+                                                    const newArr = [...selectedVideoIds];
+                                                    newArr.splice(idx, 1);
+                                                    newArr.splice(newPos - 1, 0, videoId);
+                                                    setSelectedVideoIds(newArr);
+                                                }}
+                                            />
+                                        </td>
+                                        <td>
+                                            <Button
+                                                size="sm"
+                                                variant="outline-secondary"
+                                                onClick={() => {
+                                                    if (idx > 0) {
+                                                        const newArr = [...selectedVideoIds];
+                                                        [newArr[idx - 1], newArr[idx]] = [newArr[idx], newArr[idx - 1]];
+                                                        setSelectedVideoIds(newArr);
+                                                    }
+                                                }}
+                                                style={{ marginRight: 2 }}
+                                                disabled={idx === 0}
+                                            >↑</Button>
+                                            <Button
+                                                size="sm"
+                                                variant="outline-secondary"
+                                                onClick={() => {
+                                                    if (idx < selectedVideoIds.length - 1) {
+                                                        const newArr = [...selectedVideoIds];
+                                                        [newArr[idx + 1], newArr[idx]] = [newArr[idx], newArr[idx + 1]];
+                                                        setSelectedVideoIds(newArr);
+                                                    }
+                                                }}
+                                                disabled={idx === selectedVideoIds.length - 1}
+                                            >↓</Button>
+                                        </td>
+                                        <td>{video.id}</td>
+                                        <td>{video.title}</td>
+                                    </tr>
+                                );
+                            })}
+                            {filteredVideos.filter(v => !selectedVideoIds.includes(v.id)).map((video) => (
                                 <tr key={video.id}>
                                     <td>
-                                        <Form.Check type="checkbox" />
+                                        <Form.Check
+                                            type="checkbox"
+                                            checked={false}
+                                            onChange={() => handleVideoSelect(video.id)}
+                                        />
                                     </td>
+                                    <td></td>
+                                    <td></td>
                                     <td>{video.id}</td>
                                     <td>{video.title}</td>
                                 </tr>
@@ -240,7 +366,7 @@ const ShowDetailsPage: React.FC = () => {
                         Add Season
                     </Button>
                 </Modal.Footer>
-            </Modal >
+            </Modal>
         </>
     );
 };
