@@ -88,7 +88,11 @@ const ViewShowsPage: React.FC = () => {
                                     <Card.Img
                                         variant="top"
                                         src={getCdnHostEndpoint() + object.thumbnail_cdn_path}
-                                        alt={object.name}></Card.Img>
+                                        alt={object.name}
+                                        style={{ height: "200px", objectFit: "cover" }}>
+                                            
+                                        </Card.Img>
+                                        
                                     <Card.Title>
                                         <a
                                             href={"/show/" + object.id}

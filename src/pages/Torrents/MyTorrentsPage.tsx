@@ -1,5 +1,5 @@
 import React from 'react';
-import { useQuery } from 'react-query';
+import { useQuery, useQueryClient } from 'react-query';
 import { Table, Spinner, ProgressBar, Alert, Container } from 'react-bootstrap';
 import { getHostAPIEndpoint } from '../../utils/common';
 
@@ -11,10 +11,41 @@ const fetchTorrents = async () => {
     return response.json();
 };
 
+const handleStart = async (id: string) => {
+    await fetch(getHostAPIEndpoint() + `/torrent/start?id=${encodeURIComponent(id)}`, {
+        method: 'POST',
+    });
+};
+
+const handleStop = async (id: string) => {
+    await fetch(getHostAPIEndpoint() + `/torrent/stop?id=${encodeURIComponent(id)}`, {
+        method: 'POST',
+    });
+};
+
+const handleCancel = async (id: string) => {
+    await fetch(getHostAPIEndpoint() + `/torrent/remove?id=${encodeURIComponent(id)}`, {
+        method: 'POST',
+    });
+};
+
 const MyTorrentsPage: React.FC = () => {
+    const queryClient = useQueryClient();
     const { data, isLoading, isError } = useQuery('torrents', fetchTorrents, {
         refetchInterval: 5000,
     });
+
+    const handleAction = async (action: 'start' | 'stop' | 'remove', id: string) => {
+        if (action === 'start') {
+            await handleStart(id);
+        } else if (action === 'stop') {
+            await handleStop(id);
+        } else if (action === 'remove') {
+            await handleCancel(id);
+        }
+        // Refetch torrents after action
+        queryClient.invalidateQueries('torrents');
+    };
 
     if (isLoading) {
         return (
@@ -49,7 +80,7 @@ const MyTorrentsPage: React.FC = () => {
                             <th>Down</th>
                             <th>Ratio</th>
                             <th>Status</th>
-
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -69,6 +100,25 @@ const MyTorrentsPage: React.FC = () => {
                                 <td>{torrent.down}</td>
                                 <td>{torrent.ratio}</td>
                                 <td>{torrent.status}</td>
+                                <td>
+                                    <button
+                                        className="btn btn-sm btn-primary me-2"
+                                        onClick={() =>
+                                            handleAction(
+                                                torrent.status === 'Stopped' ? 'start' : 'stop',
+                                                torrent.id
+                                            )
+                                        }
+                                    >
+                                        {torrent.status === 'Stopped' ? 'Continue' : 'Stop'}
+                                    </button>
+                                    <button
+                                        className="btn btn-sm btn-danger"
+                                        onClick={() => handleAction('remove', torrent.id)}
+                                    >
+                                        Remove
+                                    </button>
+                                </td>
                             </tr>
                         ))}
                     </tbody>

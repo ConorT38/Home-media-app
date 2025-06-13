@@ -11,7 +11,7 @@ const ShowDetailsPage: React.FC = () => {
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
     const [seasonNumber, setSeasonNumber] = useState(1);
-    const [thumbnailPath, setThumbnailPath] = useState("");
+    const [thumbnailPath, setThumbnailPath] = useState('/default-thumbnail.jpg');
     const [videos, setVideos] = useState<any[]>([]);
     const [searchTerm, setSearchTerm] = useState("");
     const [selectedVideoIds, setSelectedVideoIds] = useState<number[]>([]);
@@ -21,8 +21,8 @@ const ShowDetailsPage: React.FC = () => {
 
     const { id: showId } = useParams<{ id: string }>(); // Extract show ID from route params
 
-    const getShowDetails = () => {
-        fetch(`${getHostEndpoint()}:8081/api/show/${showId}`)
+    const getShowDetails = async () => {
+        await fetch(`${getHostEndpoint()}:8081/api/show/${showId}`)
             .then((response) => {
                 if (!response.ok) throw new Error(response.statusText);
                 return response.json();
@@ -33,7 +33,7 @@ const ShowDetailsPage: React.FC = () => {
                     setShowDetails(result);
                     setTitle(result.name);
                     setDescription(result.description);
-                    setThumbnailPath(result.thumbnail_path);
+                    setThumbnailPath(getCdnHostEndpoint() + result?.thumbnail_cdn_path );
                     setErrorLoading(false);
                 },
                 () => {
@@ -85,22 +85,7 @@ const ShowDetailsPage: React.FC = () => {
             }
         });
     };
-    useEffect(() => {
-        if (showDetails && showDetails.thumbnail_id) {
-            fetch(`${getHostEndpoint()}:8081/api/image/${showDetails.thumbnail_id}`)
-                .then((response) => {
-                    if (!response.ok) throw new Error(response.statusText);
-                    return response.json();
-                })
-                .then((result) => {
-                    setThumbnailPath(result.cdn_path);
-                })
-                .catch((error) => {
-                    console.error("Error fetching thumbnail:", error);
-                });
-        }
-    }
-    , [showDetails]);
+
     useEffect(() => {
         fetch(`${getHostAPIEndpoint()}/video?limit=100`)
             .then((response) => {
@@ -122,17 +107,28 @@ const ShowDetailsPage: React.FC = () => {
     return (
         <>
             <Container fluid className="position-relative" style={{ padding: 0, marginBottom: "2rem" }}>
-                <div style={{ position: "relative", overflow: "hidden", display: "flex", justifyContent: "center" }}>
+                <div
+                    style={{
+                        position: "relative",
+                        overflow: "hidden",
+                        display: "flex",
+                        justifyContent: "center",
+                        height: "920px", // Fixed height for banner area
+                        minHeight: "220px",
+                        alignItems: "flex-start",
+                        background: "#222",
+                    }}
+                >
                     <img
-                        src={getCdnHostEndpoint() + thumbnailPath}
+                        src={thumbnailPath}
                         alt="Show Banner"
                         className="img-fluid"
                         style={{
                             width: "80%",
-                            height: "auto",
-                            filter: "brightness(0.7)",
+                            height: "100%",
                             objectFit: "cover",
                             objectPosition: "top",
+                            filter: "brightness(0.7)",
                             clipPath: "inset(0 0 33% 0)",
                         }}
                     />
@@ -148,6 +144,7 @@ const ShowDetailsPage: React.FC = () => {
                             padding: "2rem",
                             color: "white",
                             width: "80%",
+                            height: "100%",
                         }}
                     >
                         <h1 style={{ marginBottom: "1rem" }}>{showDetails?.name || "Show Details"}</h1>
