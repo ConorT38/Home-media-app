@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Button, Modal, Form, Table, Container, Card } from "react-bootstrap";
 import { getCdnHostEndpoint, getHostAPIEndpoint, getHostEndpoint } from "../../utils/common";
 import { useParams } from "react-router-dom";
+import { Video } from "../../types";
 
 const ShowDetailsPage: React.FC = () => {
     const [showDetails, setShowDetails] = useState<any>(null);
@@ -18,6 +19,8 @@ const ShowDetailsPage: React.FC = () => {
     const filteredVideos = videos.filter((video) =>
         video.title.toLowerCase().includes(searchTerm.toLowerCase())
     );
+    const [seasons, setSeasons]= useState<{seasonNumber:number; episodes:Video[];}[]>([]);
+    const [error, setError] = useState<string | null>(null);
 
     const { id: showId } = useParams<{ id: string }>(); // Extract show ID from route params
 
@@ -42,8 +45,22 @@ const ShowDetailsPage: React.FC = () => {
             );
     };
 
+    const getSeasonsDetails = async () => {
+        try {
+            const response = await fetch(`${getHostEndpoint()}:8081/api/show/${showId}/season`);
+            if (!response.ok) throw new Error(response.statusText);
+            const result = await response.json();
+            console.log("Seasons details fetched:", result);
+            return result;
+        } catch (error) {
+            console.error("Error fetching seasons details:", error);
+            return null;
+        }
+    };
+
     useEffect(() => {
         getShowDetails();
+        getSeasonsDetails();
     }, []);
 
     const handleEditShow = () => {
@@ -71,9 +88,42 @@ const ShowDetailsPage: React.FC = () => {
             });
     };
 
-    const handleAddSeason = () => {
-        // Handle add season logic here
-        setAddSeasonModalVisible(false);
+    const handleAddSeason = async () => {
+        if (!seasonNumber || selectedVideoIds.length === 0) {
+            setAddSeasonModalVisible(false);
+            return;
+        }
+        try {
+            // 1. Create the season
+            const seasonRes = await fetch(`${getHostAPIEndpoint()}/show/${showId}/season/`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ seasonNumber: seasonNumber }),
+            });
+            if (!seasonRes.ok) throw new Error("Failed to create season");
+            const seasonData = await seasonRes.json();
+            const seasonId = seasonData.id;
+
+            // 2. Add episodes to the season
+            const episodes = selectedVideoIds.map((videoId, idx) => ({
+                videoId,
+                episodeNumber: idx + 1,
+            }));
+            const episodesRes = await fetch(`${getHostAPIEndpoint()}/show/${showId}/season/${seasonId}/episodes`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ episodes }),
+            });
+            if (!episodesRes.ok) throw new Error("Failed to add episodes");
+
+            // 3. Refresh show details and close modal
+            await getShowDetails();
+            setAddSeasonModalVisible(false);
+            setSelectedVideoIds([]);
+        } catch (err) {
+            console.error(err);
+            setAddSeasonModalVisible(false);
+        }
     };
 
     const handleVideoSelect = (videoId: number) => {
