@@ -106,10 +106,10 @@ const ViewShowsPage: React.FC = () => {
                                     </Card.Title>
                                     <Card.Text>{object.description}</Card.Text>
                                     <Card.Text>
-                                        <strong>Seasons:</strong> {object.seasons}
+                                        <strong>Seasons:</strong> {object.total_seasons || 0}
                                     </Card.Text>
                                     <Card.Text>
-                                        <strong>Episodes:</strong> {object.episodes}
+                                        <strong>Episodes:</strong> {object.total_episodes || 0}
                                     </Card.Text>
                                 </Card.Body>
                             </Card>

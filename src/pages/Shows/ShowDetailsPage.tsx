@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Button, Modal, Form, Table, Container, Card } from "react-bootstrap";
 import { getCdnHostEndpoint, getHostAPIEndpoint, getHostEndpoint } from "../../utils/common";
 import { useParams } from "react-router-dom";
-import { Video } from "../../types";
+import { ShowEpisode, Video } from "../../types";
 
 const ShowDetailsPage: React.FC = () => {
     const [showDetails, setShowDetails] = useState<any>(null);
@@ -19,7 +19,7 @@ const ShowDetailsPage: React.FC = () => {
     const filteredVideos = videos.filter((video) =>
         video.title.toLowerCase().includes(searchTerm.toLowerCase())
     );
-    const [seasons, setSeasons]= useState<{seasonNumber:number; episodes:Video[];}[]>([]);
+    const [seasons, setSeasons]= useState<{seasonNumber:number; episodes:ShowEpisode[];}[]>([]);
     const [error, setError] = useState<string | null>(null);
 
     const { id: showId } = useParams<{ id: string }>(); // Extract show ID from route params
@@ -49,8 +49,41 @@ const ShowDetailsPage: React.FC = () => {
         try {
             const response = await fetch(`${getHostEndpoint()}:8081/api/show/${showId}/season`);
             if (!response.ok) throw new Error(response.statusText);
-            const result = await response.json();
+            const result: any[] = await response.json();
             console.log("Seasons details fetched:", result);
+
+            // Group episodes by season_number
+            const grouped = result.reduce((acc: any, episode: any) => {
+                const seasonNum = episode.season_number;
+                if (!acc[seasonNum]) {
+                    acc[seasonNum] = [];
+                }
+                acc[seasonNum].push(episode);
+                return acc;
+            }, {});
+
+            // Convert to array of { seasonNumber, episodes }
+            const seasonsArr = Object.entries(grouped).map(([seasonNumber, episodes]) => ({
+                seasonNumber: Number(seasonNumber),
+                episodes: (episodes as any[]).map((ep) => ({
+                    id: ep.id,
+                    show_id: ep.show_id,
+                    season: ep.season_number,
+                    episodeNumber: ep.episode_number,
+                    video: {
+                        id: ep.video_id,
+                        filename: ep.filename,
+                        title: ep.title,
+                        cdn_path: ep.cdn_path,
+                        uploaded: ep.uploaded ? new Date(ep.uploaded) : null,
+                        views: ep.views,
+                        entertainment_type: ep.entertainment_type,
+                        thumbnail_cdn_path: ep.thumbnail_cdn_path,
+                    },
+                })) as ShowEpisode[],
+            }));
+
+            setSeasons(seasonsArr);
             return result;
         } catch (error) {
             console.error("Error fetching seasons details:", error);
@@ -156,97 +189,119 @@ const ShowDetailsPage: React.FC = () => {
 
     return (
         <>
-            <Container fluid className="position-relative" style={{ padding: 0, marginBottom: "2rem" }}>
-                <div
-                    style={{
-                        position: "relative",
-                        overflow: "hidden",
-                        display: "flex",
-                        justifyContent: "center",
-                        height: "920px", // Fixed height for banner area
-                        minHeight: "220px",
-                        alignItems: "flex-start",
-                        background: "#222",
-                    }}
-                >
-                    <img
-                        src={thumbnailPath}
-                        alt="Show Banner"
-                        className="img-fluid"
-                        style={{
-                            width: "80%",
-                            height: "100%",
-                            objectFit: "cover",
-                            objectPosition: "top",
-                            filter: "brightness(0.7)",
-                            clipPath: "inset(0 0 33% 0)",
-                        }}
-                    />
-                    <div
-                        style={{
-                            position: "absolute",
-                            top: 0,
-                            left: '10%',
-                            display: "flex",
-                            flexDirection: "column",
-                            justifyContent: "flex-start",
-                            alignItems: "flex-start",
-                            padding: "2rem",
-                            color: "white",
-                            width: "80%",
-                            height: "100%",
-                        }}
-                    >
-                        <h1 style={{ marginBottom: "1rem" }}>{showDetails?.name || "Show Details"}</h1>
-                        <p style={{ maxWidth: "600px", marginBottom: "1rem" }}>{showDetails?.description}</p>
-                        <div>
-                            <Button variant="primary" onClick={() => setEditModalVisible(true)} style={{ marginRight: "0.5rem" }}>
-                                Edit Show
-                            </Button>
-                            <Button variant="success" onClick={() => setAddSeasonModalVisible(true)}>
-                                Add Season
-                            </Button>
-                        </div>
-                    </div>
-                </div>
-            </Container>
+            <Container fluid className="position-relative" style={{ padding: 0, marginBottom: "0" }}>
+    <div
+        style={{
+            position: "relative",
+            overflow: "hidden",
+            display: "flex",
+            justifyContent: "center",
+            height: "350px", // Reduced height for banner area
+            minHeight: "220px",
+            alignItems: "flex-start",
+            background: "#222",
+        }}
+    >
+        <img
+            src={thumbnailPath}
+            alt="Show Banner"
+            className="img-fluid"
+            style={{
+                width: "80%",
+                height: "100%",
+                objectFit: "cover",
+                objectPosition: "top",
+                filter: "brightness(0.7)",
+                clipPath: "inset(0 0 13% 0)",
+            }}
+        />
+        <div
+            style={{
+                position: "absolute",
+                top: 0,
+                left: '10%',
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "flex-start",
+                alignItems: "flex-start",
+                padding: "2rem",
+                color: "white",
+                width: "80%",
+                height: "100%",
+            }}
+        >
+            <h1 style={{ marginBottom: "1rem" }}>{showDetails?.name || "Show Details"}</h1>
+            <p style={{ maxWidth: "600px", marginBottom: "1rem" }}>{showDetails?.description}</p>
+            <div>
+                <Button variant="primary" onClick={() => setEditModalVisible(true)} style={{ marginRight: "0.5rem" }}>
+                    Edit Show
+                </Button>
+                <Button variant="success" onClick={() => setAddSeasonModalVisible(true)}>
+                    Add Season
+                </Button>
+            </div>
+        </div>
+    </div>
+</Container>
             <Container className="mt-4">
-                {showDetails?.seasons && showDetails.seasons.length > 0 ? (
-                    showDetails.seasons.map((season: any) => (
-                        <Card key={season.id} className="mb-3">
-                            <Card.Header>
-                                <div className="d-flex justify-content-between align-items-center">
-                                    <span>Season {season.number}</span>
-                                    <Button
-                                        variant="link"
-                                        onClick={() => {
-                                            const element = document.getElementById(`season-${season.id}`);
-                                            if (element) {
-                                                element.classList.toggle("collapse");
-                                            }
+                {seasons && seasons.length > 0 ? (
+                    seasons.map((season: any) => (
+                        <>
+                        <h3 key={season.seasonNumber} className="mt-4">
+                            Season {season.seasonNumber}
+                        </h3>
+                        <div
+                            id={`season-${season.seasonNumber}-episodes-row`}
+                            style={{
+                                overflowX: "auto",
+                                paddingBottom: "1rem",
+                                scrollbarWidth: "none", // Firefox
+                                msOverflowStyle: "none", // IE/Edge
+                            }}
+                            className="hide-scrollbar"
+                        >
+                            <div style={{ display: "inline-flex", gap: "1rem" }}>
+                                {season.episodes?.map((episode:ShowEpisode, index:number) => (
+                                    <Card
+                                        key={episode.id || index}
+                                        style={{
+                                            width: "18rem",
+                                            display: "inline-block",
+                                            verticalAlign: "top",
+                                            minWidth: "18rem",
+                                            maxWidth: "18rem",
                                         }}
                                     >
-                                        Toggle Episodes
-                                    </Button>
-                                </div>
-                            </Card.Header>
-                            <div id={`season-${season.id}`} className="collapse">
-                                <Card.Body>
-                                    {season.episodes && season.episodes.length > 0 ? (
-                                        season.episodes.map((episode: any) => (
-                                            <Card key={episode.id} className="mb-2">
-                                                <Card.Body>
-                                                    <h5>{episode.title}</h5>
-                                                    <p>{episode.description}</p>
-                                                </Card.Body>
-                                            </Card>
-                                        ))
-                                    ) : (
-                                        <p>No episodes available for this season.</p>
-                                    )}
-                                </Card.Body>
+                                        <Card.Img
+                                            variant="top"
+                                            src={
+                                                episode.video?.thumbnail_cdn_path
+                                                    ? `${getCdnHostEndpoint()}${episode.video.thumbnail_cdn_path}`
+                                                    : "/default-thumbnail.jpg"
+                                            }
+                                            style={{ height: "200px", objectFit: "cover" }}
+                                        />
+                                        <Card.Body>
+                                            <Card.Title>
+                                                <span>
+                                                    {`S${season.seasonNumber}E${episode.episodeNumber}: `}
+                                                    <a
+                                                        href={`/video/${episode.video.id}`}
+                                                        style={{ textDecoration: "none" }}
+                                                    >
+                                                        {episode.video.title}
+                                                    </a>
+                                                </span>
+                                            </Card.Title>
+                                            <Card.Text>
+                                                <small>{episode.video?.views ?? 0} views</small>
+                                            </Card.Text>
+                                        </Card.Body>
+                                    </Card>
+                                ))}
                             </div>
-                        </Card>
+                        </div>
+                        </>
                     ))
                 ) : (
                     <div className="text-center">

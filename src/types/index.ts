@@ -22,3 +22,11 @@ export interface Show {
     video_id: number;
     season: number;
 }
+
+export interface ShowEpisode {
+    id: number;
+    show_id: number;
+    season: number;
+    episodeNumber: number;
+    video : Video;
+}
