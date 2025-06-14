@@ -286,7 +286,7 @@ const ShowDetailsPage: React.FC = () => {
                                                 <span>
                                                     {`S${season.seasonNumber}E${episode.episodeNumber}: `}
                                                     <a
-                                                        href={`/video/${episode.video.id}`}
+                                                        href={`/show/${episode.show_id}/season/${season.seasonNumber}/episode/${episode.episodeNumber}`}
                                                         style={{ textDecoration: "none" }}
                                                     >
                                                         {episode.video.title}
