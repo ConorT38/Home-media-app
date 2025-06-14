@@ -45,56 +45,58 @@ const EpisodeVideoPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [seasonId, setSeasonId] = useState<number>(0);
   const [episodeId, setEpisodeId] = useState<number>(0);
-  const [seasons, setSeasons] = useState<{seasonNumber:number; episodes:ShowEpisode[]}[]>([]);
+  const [seasons, setSeasons] = useState<{ seasonNumber: number; episodes: ShowEpisode[] }[]>([]);
 
   const location = useLocation();
 
-  const getSeasonsDetails = async (showId:number) => {
-          try {
-              const response = await fetch(`${getHostEndpoint()}:8081/api/show/${showId}/season`);
-              if (!response.ok) throw new Error(response.statusText);
-              const result: any[] = await response.json();
-              console.log("Seasons details fetched:", result);
-  
-              // Group episodes by season_number
-              const grouped = result.reduce((acc: any, episode: any) => {
-                  const seasonNum = episode.season_number;
-                  if (!acc[seasonNum]) {
-                      acc[seasonNum] = [];
-                  }
-                  acc[seasonNum].push(episode);
-                  return acc;
-              }, {});
-  
-              // Convert to array of { seasonNumber, episodes }
-              const seasonsArr = Object.entries(grouped).map(([seasonNumber, episodes]) => ({
-                  seasonNumber: Number(seasonNumber),
-                  episodes: (episodes as any[]).map((ep) => ({
-                      id: ep.id,
-                      show_id: ep.show_id,
-                      season: ep.season_number,
-                      episodeNumber: ep.episode_number,
-                      video: {
-                          id: ep.video_id,
-                          filename: ep.filename,
-                          title: ep.title,
-                          cdn_path: ep.cdn_path,
-                          uploaded: ep.uploaded ? new Date(ep.uploaded) : null,
-                          views: ep.views,
-                          entertainment_type: ep.entertainment_type,
-                          thumbnail_cdn_path: ep.thumbnail_cdn_path,
-                      },
-                  })) as ShowEpisode[],
-              }));
-  
-              setSeasons(seasonsArr);
-              console.log("Grouped seasons:", seasonsArr);
-              return result;
-          } catch (error) {
-              console.error("Error fetching seasons details:", error);
-              return null;
-          }
-      };
+  const getSeasonsDetails = async (showId: number) => {
+    try {
+      const response = await fetch(`${getHostEndpoint()}:8081/api/show/${showId}/season`);
+      if (!response.ok) throw new Error(response.statusText);
+      const result: any[] = await response.json();
+      console.log("Seasons details fetched:", result);
+
+      // Group episodes by season_number
+      const grouped = result.reduce((acc: any, episode: any) => {
+        const seasonNum = episode.season_number;
+        if (!acc[seasonNum]) {
+          acc[seasonNum] = [];
+        }
+        acc[seasonNum].push(episode);
+        return acc;
+      }, {});
+
+      // Convert to array of { seasonNumber, episodes }
+      const seasonsArr = Object.entries(grouped).map(([seasonNumber, episodes]) => ({
+        seasonNumber: Number(seasonNumber),
+        episodes: (episodes as any[]).map((ep) => ({
+          id: ep.id,
+          show_id: ep.show_id,
+          season: ep.season_number,
+          episodeNumber: ep.episode_number,
+          video: {
+            id: ep.video_id,
+            filename: ep.filename,
+            title: ep.title,
+            cdn_path: ep.cdn_path,
+            uploaded: ep.uploaded ? new Date(ep.uploaded) : null,
+            views: ep.views,
+            entertainment_type: ep.entertainment_type,
+            thumbnail_cdn_path: ep.thumbnail_cdn_path,
+          },
+        }))
+          .sort((a, b) => a.episodeNumber - b.episodeNumber)
+          .filter(v => v.episodeNumber > episodeId) as ShowEpisode[],
+      }));
+
+      setSeasons(seasonsArr);
+      console.log("Grouped seasons:", seasonsArr);
+      return result;
+    } catch (error) {
+      console.error("Error fetching seasons details:", error);
+      return null;
+    }
+  };
 
   useEffect(() => {
     if (location.pathname) {
@@ -106,7 +108,7 @@ const EpisodeVideoPage: React.FC = () => {
       const matchedValue = episodeId;
       console.log("Matched value:", matchedValue);
       if (matchedValue) {
-        getSearchResults(showId,seasonId, episodeId).then(
+        getSearchResults(showId, seasonId, episodeId).then(
           (result) => {
             console.log("Search results:", result);
             setTitle(result.title);
@@ -171,51 +173,51 @@ const EpisodeVideoPage: React.FC = () => {
           onMouseLeave={() => setIsControlsEnabled(false)}
         >
           <ReactPlayer
-        controls={isControlsEnabled}
-        url={
-          window.location.hostname === "localhost"
-            ? "http://192.168.0.23:8000" + cdnPath
-            : getHostEndpoint() + ":8000" + cdnPath
-        }
-        width="100%"
-        height="100%"
+            controls={isControlsEnabled}
+            url={
+              window.location.hostname === "localhost"
+                ? "http://192.168.0.23:8000" + cdnPath
+                : getHostEndpoint() + ":8000" + cdnPath
+            }
+            width="100%"
+            height="100%"
           />
         </div>
         <div className="row">
           <br />
           <div className="col">
-        {!isEditMode ? (
-          <h5>{title}</h5>
-        ) : (
-          <div>
-            <input
-          type="text"
-          className="form-control"
-          id="titleInput"
-          placeholder={title}
-          onChange={(e) => setEditedTitle(e.target.value)}
-            />
-          </div>
-        )}
+            {!isEditMode ? (
+              <h5>{title}</h5>
+            ) : (
+              <div>
+                <input
+                  type="text"
+                  className="form-control"
+                  id="titleInput"
+                  placeholder={title}
+                  onChange={(e) => setEditedTitle(e.target.value)}
+                />
+              </div>
+            )}
           </div>
           <div className="col align-self-end">
-        {!isEditMode ? (
-          <button
-            type="button"
-            className="btn btn-outline-secondary"
-            onClick={() => setIsEditMode(true)}
-          >
-            Edit <FontAwesomeIcon icon={faEdit} />
-          </button>
-        ) : (
-          <button
-            type="button"
-            className="btn btn-outline-success"
-            onClick={() => handleEditVideoName(editedTitle)}
-          >
-            Submit <FontAwesomeIcon icon={faCheck} />
-          </button>
-        )}
+            {!isEditMode ? (
+              <button
+                type="button"
+                className="btn btn-outline-secondary"
+                onClick={() => setIsEditMode(true)}
+              >
+                Edit <FontAwesomeIcon icon={faEdit} />
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="btn btn-outline-success"
+                onClick={() => handleEditVideoName(editedTitle)}
+              >
+                Submit <FontAwesomeIcon icon={faCheck} />
+              </button>
+            )}
           </div>
         </div>
         <br />
@@ -229,94 +231,94 @@ const EpisodeVideoPage: React.FC = () => {
           if (!currentSeason) return null;
           // Find the next episode in the current season
           const nextEpisode = currentSeason.episodes.find(
-        ep => ep.episodeNumber === episodeId + 1
+            ep => ep.episodeNumber === episodeId + 1
           );
           if (!nextEpisode) return null;
           // Build the link for the next episode
           const nextLink = `/show/${nextEpisode.show_id}/season/${nextEpisode.season}/episode/${nextEpisode.episodeNumber}`;
           return (
-        <div className="d-flex justify-content-center my-4">
-            <a
-            href={nextLink}
-            className="btn btn-primary btn-lg"
-            style={{ fontSize: "1.5rem", padding: "1rem 2.5rem" }}
-            onClick={(e) => {
-              removeFromContinueWatching(videoId);
-            }}
-            >
-            Next Episode &rarr;
-            </a>
-        </div>
+            <div className="d-flex justify-content-center my-4">
+              <a
+                href={nextLink}
+                className="btn btn-primary btn-lg"
+                style={{ fontSize: "1.5rem", padding: "1rem 2.5rem" }}
+                onClick={(e) => {
+                  removeFromContinueWatching(videoId);
+                }}
+              >
+                Next Episode &rarr;
+              </a>
+            </div>
           );
         })()}
       </div>
       <Container className="mt-4">
-                      {seasons && seasons.length > 0 ? (
-                          seasons.map((season: any) => (
-                              <>
-                              <h3 key={season.seasonNumber} className="mt-4">
-                                  Season {season.seasonNumber}
-                              </h3>
-                              <div
-                                  id={`season-${season.seasonNumber}-episodes-row`}
-                                  style={{
-                                      overflowX: "auto",
-                                      paddingBottom: "1rem",
-                                      scrollbarWidth: "none", // Firefox
-                                      msOverflowStyle: "none", // IE/Edge
-                                  }}
-                                  className="hide-scrollbar"
-                              >
-                                  <div style={{ display: "inline-flex", gap: "1rem" }}>
-                                      {season.episodes?.map((episode:ShowEpisode, index:number) => (
-                                          <Card
-                                              key={episode.id || index}
-                                              style={{
-                                                  width: "18rem",
-                                                  display: "inline-block",
-                                                  verticalAlign: "top",
-                                                  minWidth: "18rem",
-                                                  maxWidth: "18rem",
-                                              }}
-                                          >
-                                              <Card.Img
-                                                  variant="top"
-                                                  src={
-                                                      episode.video?.thumbnail_cdn_path
-                                                          ? `${getCdnHostEndpoint()}${episode.video.thumbnail_cdn_path}`
-                                                          : "/default-thumbnail.jpg"
-                                                  }
-                                                  style={{ height: "200px", objectFit: "cover" }}
-                                              />
-                                              <Card.Body>
-                                                  <Card.Title>
-                                                      <span>
-                                                          {`S${season.seasonNumber}E${episode.episodeNumber}: `}
-                                                          <a
-                                                              href={`/video/${episode.video.id}`}
-                                                              style={{ textDecoration: "none" }}
-                                                          >
-                                                              {episode.video.title}
-                                                          </a>
-                                                      </span>
-                                                  </Card.Title>
-                                                  <Card.Text>
-                                                      <small>{episode.video?.views ?? 0} views</small>
-                                                  </Card.Text>
-                                              </Card.Body>
-                                          </Card>
-                                      ))}
-                                  </div>
-                              </div>
-                              </>
-                          ))
-                      ) : (
-                          <div className="text-center">
-                              <p>No seasons yet. Add a season to get started!</p>
-                              
-                          </div>
-                      )}
-                  </Container>
+        {seasons && seasons.length > 0 ? (
+          seasons.map((season: any) => (
+            <>
+              <h3 key={season.seasonNumber} className="mt-4">
+                Season {season.seasonNumber}
+              </h3>
+              <div
+                id={`season-${season.seasonNumber}-episodes-row`}
+                style={{
+                  overflowX: "auto",
+                  paddingBottom: "1rem",
+                  scrollbarWidth: "none", // Firefox
+                  msOverflowStyle: "none", // IE/Edge
+                }}
+                className="hide-scrollbar"
+              >
+                <div style={{ display: "inline-flex", gap: "1rem" }}>
+                  {season.episodes?.map((episode: ShowEpisode, index: number) => (
+                    <Card
+                      key={episode.id || index}
+                      style={{
+                        width: "18rem",
+                        display: "inline-block",
+                        verticalAlign: "top",
+                        minWidth: "18rem",
+                        maxWidth: "18rem",
+                      }}
+                    >
+                      <Card.Img
+                        variant="top"
+                        src={
+                          episode.video?.thumbnail_cdn_path
+                            ? `${getCdnHostEndpoint()}${episode.video.thumbnail_cdn_path}`
+                            : "/default-thumbnail.jpg"
+                        }
+                        style={{ height: "200px", objectFit: "cover" }}
+                      />
+                      <Card.Body>
+                        <Card.Title>
+                          <span>
+                            {`S${season.seasonNumber}E${episode.episodeNumber}: `}
+                            <a
+                              href={`/video/${episode.video.id}`}
+                              style={{ textDecoration: "none" }}
+                            >
+                              {episode.video.title}
+                            </a>
+                          </span>
+                        </Card.Title>
+                        <Card.Text>
+                          <small>{episode.video?.views ?? 0} views</small>
+                        </Card.Text>
+                      </Card.Body>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            </>
+          ))
+        ) : (
+          <div className="text-center">
+            <p>No seasons yet. Add a season to get started!</p>
+
+          </div>
+        )}
+      </Container>
     </React.Fragment>
   );
 };

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Button, Modal, Form, Table, Container, Card } from "react-bootstrap";
+import { Button, Modal, Form, Table, Container, Card, Spinner, Pagination } from "react-bootstrap";
 import { getCdnHostEndpoint, getHostAPIEndpoint, getHostEndpoint } from "../../utils/common";
 import { useParams } from "react-router-dom";
 import { ShowEpisode, Video } from "../../types";
@@ -7,8 +7,15 @@ import { ShowEpisode, Video } from "../../types";
 const ShowDetailsPage: React.FC = () => {
     const [showDetails, setShowDetails] = useState<any>(null);
     const [errorLoading, setErrorLoading] = useState(false);
+
     const [editModalVisible, setEditModalVisible] = useState(false);
     const [addSeasonModalVisible, setAddSeasonModalVisible] = useState(false);
+    const [videosLoading, setVideosLoading] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
+    // Pagination settings
+    const [totalPages, setTotalPages] = useState(0); // Total number of pages
+    const [totalItems, setTotalItems] = useState(0); // Total number of items
+    // State for show details
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
     const [seasonNumber, setSeasonNumber] = useState(1);
@@ -16,10 +23,8 @@ const ShowDetailsPage: React.FC = () => {
     const [videos, setVideos] = useState<any[]>([]);
     const [searchTerm, setSearchTerm] = useState("");
     const [selectedVideoIds, setSelectedVideoIds] = useState<number[]>([]);
-    const filteredVideos = videos.filter((video) =>
-        video.title.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-    const [seasons, setSeasons]= useState<{seasonNumber:number; episodes:ShowEpisode[];}[]>([]);
+
+    const [seasons, setSeasons] = useState<{ seasonNumber: number; episodes: ShowEpisode[]; }[]>([]);
     const [error, setError] = useState<string | null>(null);
 
     const { id: showId } = useParams<{ id: string }>(); // Extract show ID from route params
@@ -36,7 +41,7 @@ const ShowDetailsPage: React.FC = () => {
                     setShowDetails(result);
                     setTitle(result.name);
                     setDescription(result.description);
-                    setThumbnailPath(getCdnHostEndpoint() + result?.thumbnail_cdn_path );
+                    setThumbnailPath(getCdnHostEndpoint() + result?.thumbnail_cdn_path);
                     setErrorLoading(false);
                 },
                 () => {
@@ -65,22 +70,24 @@ const ShowDetailsPage: React.FC = () => {
             // Convert to array of { seasonNumber, episodes }
             const seasonsArr = Object.entries(grouped).map(([seasonNumber, episodes]) => ({
                 seasonNumber: Number(seasonNumber),
-                episodes: (episodes as any[]).map((ep) => ({
-                    id: ep.id,
-                    show_id: ep.show_id,
-                    season: ep.season_number,
-                    episodeNumber: ep.episode_number,
-                    video: {
-                        id: ep.video_id,
-                        filename: ep.filename,
-                        title: ep.title,
-                        cdn_path: ep.cdn_path,
-                        uploaded: ep.uploaded ? new Date(ep.uploaded) : null,
-                        views: ep.views,
-                        entertainment_type: ep.entertainment_type,
-                        thumbnail_cdn_path: ep.thumbnail_cdn_path,
-                    },
-                })) as ShowEpisode[],
+                episodes: (episodes as any[])
+                    .map((ep) => ({
+                        id: ep.id,
+                        show_id: ep.show_id,
+                        season: ep.season_number,
+                        episodeNumber: ep.episode_number,
+                        video: {
+                            id: ep.video_id,
+                            filename: ep.filename,
+                            title: ep.title,
+                            cdn_path: ep.cdn_path,
+                            uploaded: ep.uploaded ? new Date(ep.uploaded) : null,
+                            views: ep.views,
+                            entertainment_type: ep.entertainment_type,
+                            thumbnail_cdn_path: ep.thumbnail_cdn_path,
+                        },
+                    }))
+                    .sort((a, b) => a.episodeNumber - b.episodeNumber) as ShowEpisode[], // Sort by episode number
             }));
 
             setSeasons(seasonsArr);
@@ -128,7 +135,7 @@ const ShowDetailsPage: React.FC = () => {
         }
         try {
             // 1. Create the season
-            const seasonRes = await fetch(`${getHostAPIEndpoint()}/show/${showId}/season/`, {
+            const seasonRes = await fetch(`${getHostAPIEndpoint()}/show/${showId}/season`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ seasonNumber: seasonNumber }),
@@ -170,137 +177,189 @@ const ShowDetailsPage: React.FC = () => {
     };
 
     useEffect(() => {
-        fetch(`${getHostAPIEndpoint()}/video?limit=100`)
-            .then((response) => {
-                if (!response.ok) throw new Error(response.statusText);
-                return response.json();
-            })
-            .then(
-                (result) => {
-                    console.log("Videos fetched:", result);
-                    setVideos(result.items);
-                },
-                () => {
-                    setVideos([]);
-                }
-            );
+        if (addSeasonModalVisible) {
+            setVideosLoading(true);
+            fetch(`${getHostAPIEndpoint()}/video?limit=100&page=${currentPage}&search=${encodeURIComponent(searchTerm)}`)
+                .then((response) => {
+                    if (!response.ok) throw new Error(response.statusText);
+                    return response.json();
+                })
+                .then(
+                    (result) => {
+                        console.log("Videos fetched:", result);
+                        setVideos(result.items);
+                        setTotalPages(result.totalPages);
+                        setTotalItems(result.totalItems);
+                        setErrorLoading(false);
+                    },
+                    () => {
+                        setVideos([]);
+                    }
+                )
+                .finally(() => {
+                    setVideosLoading(false);
+                });
+        }
+    }, [addSeasonModalVisible, currentPage]);
+
+    useEffect(() => {
+        if (addSeasonModalVisible && searchTerm) {
+            setVideosLoading(true);
+            fetch(`${getHostAPIEndpoint()}/search/${encodeURIComponent(searchTerm)}?limit=100&page=${currentPage}`)
+                .then((response) => {
+                    if (!response.ok) throw new Error(response.statusText);
+                    return response.json();
+                })
+                .then(
+                    (result) => {
+                        console.log("Videos fetched from search:", result);
+                        setVideos(result?.data);
+                        setTotalPages(result?.pagination.totalPages);
+                        setTotalItems(result?.pagination?.total);
+                        setErrorLoading(false);
+                    },
+                    () => {
+                        setVideos([]);
+                    }
+                )
+                .finally(() => {
+                    setVideosLoading(false);
+                });
+        }
+    }, [addSeasonModalVisible, currentPage, searchTerm]);
+
+    useEffect(() => {
+        if (addSeasonModalVisible) {
+            setCurrentPage(1); // Reset to first page when modal opens
+        }
     }
-    , []);
+        , [addSeasonModalVisible]);
+    useEffect(() => {
+        if (addSeasonModalVisible) {
+            setSelectedVideoIds([]); // Reset selected videos when modal opens
+        }
+    }
+        , [addSeasonModalVisible]);
+    useEffect(() => {
+        if (addSeasonModalVisible) {
+            setSearchTerm(""); // Reset search term when modal opens
+        }
+    }, [addSeasonModalVisible]);
 
     return (
         <>
             <Container fluid className="position-relative" style={{ padding: 0, marginBottom: "0" }}>
-    <div
-        style={{
-            position: "relative",
-            overflow: "hidden",
-            display: "flex",
-            justifyContent: "center",
-            height: "350px", // Reduced height for banner area
-            minHeight: "220px",
-            alignItems: "flex-start",
-            background: "#222",
-        }}
-    >
-        <img
-            src={thumbnailPath}
-            alt="Show Banner"
-            className="img-fluid"
-            style={{
-                width: "80%",
-                height: "100%",
-                objectFit: "cover",
-                objectPosition: "top",
-                filter: "brightness(0.7)",
-                clipPath: "inset(0 0 13% 0)",
-            }}
-        />
-        <div
-            style={{
-                position: "absolute",
-                top: 0,
-                left: '10%',
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "flex-start",
-                alignItems: "flex-start",
-                padding: "2rem",
-                color: "white",
-                width: "80%",
-                height: "100%",
-            }}
-        >
-            <h1 style={{ marginBottom: "1rem" }}>{showDetails?.name || "Show Details"}</h1>
-            <p style={{ maxWidth: "600px", marginBottom: "1rem" }}>{showDetails?.description}</p>
-            <div>
-                <Button variant="primary" onClick={() => setEditModalVisible(true)} style={{ marginRight: "0.5rem" }}>
-                    Edit Show
-                </Button>
-                <Button variant="success" onClick={() => setAddSeasonModalVisible(true)}>
-                    Add Season
-                </Button>
-            </div>
-        </div>
-    </div>
-</Container>
+                <div
+                    style={{
+                        position: "relative",
+                        overflow: "hidden",
+                        display: "flex",
+                        justifyContent: "center",
+                        maxHeight: "650px", // Reduced height for banner area
+                        minHeight: "220px",
+                        alignItems: "flex-start",
+                        background: "#222",
+                        width: "100%", // Ensure it spans the full width of the screen
+                    }}
+                >
+                    <img
+                        src={thumbnailPath}
+                        alt="Show Banner"
+                        className="img-fluid"
+                        style={{
+                            width: "100%", // Make the image span the full width
+                            height: "100%",
+                            objectFit: "cover", // Ensure the image covers the area without distortion
+                            objectPosition: "center", // Center the image
+                            filter: "brightness(0.7)",
+                        }}
+                    />
+                    <div
+                        style={{
+                            position: "absolute",
+                            top: 0,
+                            left: 0,
+                            display: "flex",
+                            flexDirection: "column",
+                            justifyContent: "flex-start",
+                            alignItems: "flex-start",
+                            padding: "2rem",
+                            color: "white",
+                            width: "100%", // Adjust to match the full width of the container
+                            height: "100%",
+                        }}
+                    >
+                        <h1 style={{ marginBottom: "1rem" }}>{showDetails?.name || "Show Details"}</h1>
+                        <p style={{ maxWidth: "600px", marginBottom: "1rem" }}>{showDetails?.description}</p>
+                        <div>
+                            <Button variant="primary" onClick={() => setEditModalVisible(true)} style={{ marginRight: "0.5rem" }}>
+                                Edit Show
+                            </Button>
+                            <Button variant="success" onClick={() => setAddSeasonModalVisible(true)}>
+                                Add Season
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            </Container>
             <Container className="mt-4">
                 {seasons && seasons.length > 0 ? (
                     seasons.map((season: any) => (
                         <>
-                        <h3 key={season.seasonNumber} className="mt-4">
-                            Season {season.seasonNumber}
-                        </h3>
-                        <div
-                            id={`season-${season.seasonNumber}-episodes-row`}
-                            style={{
-                                overflowX: "auto",
-                                paddingBottom: "1rem",
-                                scrollbarWidth: "none", // Firefox
-                                msOverflowStyle: "none", // IE/Edge
-                            }}
-                            className="hide-scrollbar"
-                        >
-                            <div style={{ display: "inline-flex", gap: "1rem" }}>
-                                {season.episodes?.map((episode:ShowEpisode, index:number) => (
-                                    <Card
-                                        key={episode.id || index}
-                                        style={{
-                                            width: "18rem",
-                                            display: "inline-block",
-                                            verticalAlign: "top",
-                                            minWidth: "18rem",
-                                            maxWidth: "18rem",
-                                        }}
-                                    >
-                                        <Card.Img
-                                            variant="top"
-                                            src={
-                                                episode.video?.thumbnail_cdn_path
-                                                    ? `${getCdnHostEndpoint()}${episode.video.thumbnail_cdn_path}`
-                                                    : "/default-thumbnail.jpg"
-                                            }
-                                            style={{ height: "200px", objectFit: "cover" }}
-                                        />
-                                        <Card.Body>
-                                            <Card.Title>
-                                                <span>
-                                                    {`S${season.seasonNumber}E${episode.episodeNumber}: `}
-                                                    <a
-                                                        href={`/show/${episode.show_id}/season/${season.seasonNumber}/episode/${episode.episodeNumber}`}
-                                                        style={{ textDecoration: "none" }}
-                                                    >
-                                                        {episode.video.title}
-                                                    </a>
-                                                </span>
-                                            </Card.Title>
-                                            <Card.Text>
-                                                <small>{episode.video?.views ?? 0} views</small>
-                                            </Card.Text>
-                                        </Card.Body>
-                                    </Card>
-                                ))}
+                            <h3 key={season.seasonNumber} className="mt-4">
+                                Season {season.seasonNumber}
+                            </h3>
+                            <div
+                                id={`season-${season.seasonNumber}-episodes-row`}
+                                style={{
+                                    overflowX: "auto",
+                                    paddingBottom: "1rem",
+                                    scrollbarWidth: "none", // Firefox
+                                    msOverflowStyle: "none", // IE/Edge
+                                }}
+                                className="hide-scrollbar"
+                            >
+                                <div style={{ display: "inline-flex", gap: "1rem" }}>
+                                    {season.episodes?.map((episode: ShowEpisode, index: number) => (
+                                        <Card
+                                            key={episode.id || index}
+                                            style={{
+                                                width: "18rem",
+                                                display: "inline-block",
+                                                verticalAlign: "top",
+                                                minWidth: "18rem",
+                                                maxWidth: "18rem",
+                                            }}
+                                        >
+                                            <Card.Img
+                                                variant="top"
+                                                src={
+                                                    episode.video?.thumbnail_cdn_path
+                                                        ? `${getCdnHostEndpoint()}${episode.video.thumbnail_cdn_path}`
+                                                        : "/default-thumbnail.jpg"
+                                                }
+                                                style={{ height: "200px", objectFit: "cover" }}
+                                            />
+                                            <Card.Body>
+                                                <Card.Title>
+                                                    <span>
+                                                        {`S${season.seasonNumber}E${episode.episodeNumber}: `}
+                                                        <a
+                                                            href={`/show/${episode.show_id}/season/${season.seasonNumber}/episode/${episode.episodeNumber}`}
+                                                            style={{ textDecoration: "none" }}
+                                                        >
+                                                            {episode.video.title}
+                                                        </a>
+                                                    </span>
+                                                </Card.Title>
+                                                <Card.Text>
+                                                    <small>{episode.video?.views ?? 0} views</small>
+                                                </Card.Text>
+                                            </Card.Body>
+                                        </Card>
+                                    ))}
+                                </div>
                             </div>
-                        </div>
                         </>
                     ))
                 ) : (
@@ -370,97 +429,131 @@ const ShowDetailsPage: React.FC = () => {
                             />
                         </Form.Group>
                     </Form>
-                    <Table striped bordered hover>
-                        <thead>
-                            <tr>
-                                <th>Select</th>
-                                <th>Episode #</th>
-                                <th></th>
-                                <th>Video ID</th>
-                                <th>Title</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {selectedVideoIds.map((videoId, idx) => {
-                                const video = videos.find(v => v.id === videoId);
-                                if (!video) return null;
-                                return (
+                    {videosLoading ? (
+                        <div className="text-center">
+                            <p>Loading videos...</p>
+                            <div className="d-flex justify-content-center">
+                                <Spinner animation="border" role="status">
+                                    <span className="visually-hidden">Loading...</span>
+                                </Spinner>
+                            </div>
+                        </div>
+                    ) : (
+                        <Table striped bordered hover>
+                            <thead>
+                                <tr>
+                                    <th>Select</th>
+                                    <th>Episode #</th>
+                                    <th></th>
+                                    <th>Video ID</th>
+                                    <th>Title</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {selectedVideoIds.map((videoId, idx) => {
+                                    const video = videos.find(v => v.id === videoId);
+                                    if (!video) return null;
+                                    return (
+                                        <tr key={video.id}>
+                                            <td>
+                                                <Form.Check
+                                                    type="checkbox"
+                                                    checked={true}
+                                                    onChange={() => handleVideoSelect(video.id)}
+                                                />
+                                            </td>
+                                            <td>
+                                                <Form.Control
+                                                    type="number"
+                                                    min={1}
+                                                    style={{ width: 70, display: "inline-block" }}
+                                                    value={idx + 1}
+                                                    onChange={e => {
+                                                        const newPos = Math.max(1, Math.min(selectedVideoIds.length, Number(e.target.value)));
+                                                        if (newPos === idx + 1) return;
+                                                        // Move videoId to newPos-1
+                                                        const newArr = [...selectedVideoIds];
+                                                        newArr.splice(idx, 1);
+                                                        newArr.splice(newPos - 1, 0, videoId);
+                                                        setSelectedVideoIds(newArr);
+                                                    }}
+                                                />
+                                            </td>
+                                            <td>
+                                                <Button
+                                                    size="sm"
+                                                    variant="outline-secondary"
+                                                    onClick={() => {
+                                                        if (idx > 0) {
+                                                            const newArr = [...selectedVideoIds];
+                                                            [newArr[idx - 1], newArr[idx]] = [newArr[idx], newArr[idx - 1]];
+                                                            setSelectedVideoIds(newArr);
+                                                        }
+                                                    }}
+                                                    style={{ marginRight: 2 }}
+                                                    disabled={idx === 0}
+                                                >↑</Button>
+                                                <Button
+                                                    size="sm"
+                                                    variant="outline-secondary"
+                                                    onClick={() => {
+                                                        if (idx < selectedVideoIds.length - 1) {
+                                                            const newArr = [...selectedVideoIds];
+                                                            [newArr[idx + 1], newArr[idx]] = [newArr[idx], newArr[idx + 1]];
+                                                            setSelectedVideoIds(newArr);
+                                                        }
+                                                    }}
+                                                    disabled={idx === selectedVideoIds.length - 1}
+                                                >↓</Button>
+                                            </td>
+                                            <td>{video.id}</td>
+                                            <td>{video.title}</td>
+                                        </tr>
+                                    );
+                                })}
+                                {videos?.filter(v => !selectedVideoIds.includes(v.id)).map((video) => (
                                     <tr key={video.id}>
                                         <td>
                                             <Form.Check
                                                 type="checkbox"
-                                                checked={true}
+                                                checked={false}
                                                 onChange={() => handleVideoSelect(video.id)}
                                             />
                                         </td>
-                                        <td>
-                                            <Form.Control
-                                                type="number"
-                                                min={1}
-                                                style={{ width: 70, display: "inline-block" }}
-                                                value={idx + 1}
-                                                onChange={e => {
-                                                    const newPos = Math.max(1, Math.min(selectedVideoIds.length, Number(e.target.value)));
-                                                    if (newPos === idx + 1) return;
-                                                    // Move videoId to newPos-1
-                                                    const newArr = [...selectedVideoIds];
-                                                    newArr.splice(idx, 1);
-                                                    newArr.splice(newPos - 1, 0, videoId);
-                                                    setSelectedVideoIds(newArr);
-                                                }}
-                                            />
-                                        </td>
-                                        <td>
-                                            <Button
-                                                size="sm"
-                                                variant="outline-secondary"
-                                                onClick={() => {
-                                                    if (idx > 0) {
-                                                        const newArr = [...selectedVideoIds];
-                                                        [newArr[idx - 1], newArr[idx]] = [newArr[idx], newArr[idx - 1]];
-                                                        setSelectedVideoIds(newArr);
-                                                    }
-                                                }}
-                                                style={{ marginRight: 2 }}
-                                                disabled={idx === 0}
-                                            >↑</Button>
-                                            <Button
-                                                size="sm"
-                                                variant="outline-secondary"
-                                                onClick={() => {
-                                                    if (idx < selectedVideoIds.length - 1) {
-                                                        const newArr = [...selectedVideoIds];
-                                                        [newArr[idx + 1], newArr[idx]] = [newArr[idx], newArr[idx + 1]];
-                                                        setSelectedVideoIds(newArr);
-                                                    }
-                                                }}
-                                                disabled={idx === selectedVideoIds.length - 1}
-                                            >↓</Button>
-                                        </td>
+                                        <td></td>
+                                        <td></td>
                                         <td>{video.id}</td>
                                         <td>{video.title}</td>
                                     </tr>
-                                );
-                            })}
-                            {filteredVideos.filter(v => !selectedVideoIds.includes(v.id)).map((video) => (
-                                <tr key={video.id}>
-                                    <td>
-                                        <Form.Check
-                                            type="checkbox"
-                                            checked={false}
-                                            onChange={() => handleVideoSelect(video.id)}
-                                        />
-                                    </td>
-                                    <td></td>
-                                    <td></td>
-                                    <td>{video.id}</td>
-                                    <td>{video.title}</td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </Table>
+                                ))}
+                            </tbody>
+                        </Table>
+                    )}
+
                 </Modal.Body>
                 <Modal.Footer>
+                    <Pagination className="w-100 justify-content-center">
+                        <Pagination.Prev
+                            disabled={currentPage === 1}
+                            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                        />
+                        {Array.from({ length: totalPages }, (_, index) => (
+                            <Pagination.Item
+                                key={index + 1}
+                                active={index + 1 === currentPage}
+                                onClick={() => setCurrentPage(index + 1)}
+                            >
+                                {index + 1}
+                            </Pagination.Item>
+                        ))}
+                        <Pagination.Next
+                            disabled={currentPage === totalPages}
+                            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                        />
+                    </Pagination>
+                    <div className="text-center mt-2">
+                        <small>Total Items: {totalItems}</small>
+                    </div>
                     <Button variant="secondary" onClick={() => setAddSeasonModalVisible(false)}>
                         Close
                     </Button>
