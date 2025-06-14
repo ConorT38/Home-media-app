@@ -158,7 +158,7 @@ const Landing: React.FC = () => {
       {(continueWatchingResults.length > 0) && (
         <>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <h4>Contine watching</h4>
+            <h4>Continue watching</h4>
             <div>
               <Button
                 variant="dark"
