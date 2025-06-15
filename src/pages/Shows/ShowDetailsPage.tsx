@@ -210,7 +210,7 @@ const ShowDetailsPage: React.FC = () => {
     useEffect(() => {
         if (addSeasonModalVisible && searchTerm) {
             setVideosLoading(true);
-            fetch(`${getHostAPIEndpoint()}/search/${encodeURIComponent(searchTerm)}?limit=100&page=${currentPage}`)
+            fetch(`${getHostAPIEndpoint()}/search/videos/${encodeURIComponent(searchTerm)}?limit=100&page=${currentPage}`)
                 .then((response) => {
                     if (!response.ok) throw new Error(response.statusText);
                     return response.json();
