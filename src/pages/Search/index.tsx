@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from "react";
-import SearchResultsList from "../../components/Search/SearchResultsList";
 import { useLocation } from "react-router-dom";
-import { getHostAPIEndpoint } from "../../utils/common";
-import { Container, Spinner, Pagination } from "react-bootstrap";
+import { getCdnHostEndpoint, getHostAPIEndpoint } from "../../utils/common";
+import { Container, Spinner, Pagination, Card } from "react-bootstrap";
 
 export const SearchPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState<string>("");
-  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [movies, setMovies] = useState<any[]>([]);
+  const [shows, setShows] = useState<any[]>([]);
+  const [videos, setVideos] = useState<any[]>([]);
   const [currentTab, setCurrentTab] = useState<number>(0);
   const [errorLoading, setErrorLoading] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -24,8 +25,20 @@ export const SearchPage: React.FC = () => {
       if (!response.ok) throw new Error(response.status.toString());
       const result = await response.json();
       console.log(result);
-      setSearchResults(result.data || []);
-      setTotalPages(result.pagination.totalPages || 1);
+
+      setMovies(result.data.movies || []);
+      setShows(result.data.shows || []);
+      setVideos(result.data.videos || []);
+
+      // Update total pages based on the current tab
+      if (currentTab === 0) {
+        setTotalPages(result.pagination.movies.totalPages || 1);
+      } else if (currentTab === 1) {
+        setTotalPages(result.pagination.shows.totalPages || 1);
+      } else if (currentTab === 2) {
+        setTotalPages(result.pagination.videos.totalPages || 1);
+      }
+
       setIsLoading(false);
     } catch (error) {
       console.error("Error fetching search results:", error);
@@ -44,10 +57,17 @@ export const SearchPage: React.FC = () => {
       }
     };
     fetchSearchResults();
-  }, [location, currentPage]);
+  }, [location, currentPage, currentTab]);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
+  };
+
+  const getCurrentTabData = () => {
+    if (currentTab === 0) return movies;
+    if (currentTab === 1) return shows;
+    if (currentTab === 2) return videos;
+    return [];
   };
 
   if (isLoading) {
@@ -72,67 +92,113 @@ export const SearchPage: React.FC = () => {
                   className={
                     "nav-item nav-link " + (currentTab === 0 ? "active" : "")
                   }
-                  onClick={() => setCurrentTab(0)}
+                  onClick={() => {
+                    setCurrentTab(0);
+                    setCurrentPage(1); // Reset page when switching tabs
+                  }}
                   id="nav-home-tab"
                   href="javascript:;"
                 >
-                  Movies ({searchResults.length})
+                  Movies ({movies.length})
                 </a>
                 <a
                   className={
                     "nav-item nav-link " + (currentTab === 1 ? "active" : "")
                   }
-                  onClick={() => setCurrentTab(1)}
+                  onClick={() => {
+                    setCurrentTab(1);
+                    setCurrentPage(1); // Reset page when switching tabs
+                  }}
                   id="nav-profile-tab"
                   href="javascript:;"
                 >
-                  Series ({searchResults.length})
+                  Shows ({shows.length})
                 </a>
                 <a
                   className={
                     "nav-item nav-link " + (currentTab === 2 ? "active" : "")
                   }
-                  onClick={() => setCurrentTab(2)}
+                  onClick={() => {
+                    setCurrentTab(2);
+                    setCurrentPage(1); // Reset page when switching tabs
+                  }}
                   id="nav-contact-tab"
                   href="javascript:;"
                 >
-                  Documentaries ({searchResults.length})
+                  Videos ({videos.length})
                 </a>
               </div>
             </nav>
-            {searchResults.length < 1 ? (
+            {getCurrentTabData().length < 1 ? (
               <div>No Search Results for that term</div>
             ) : (
               <div>
                 <br />
-                <SearchResultsList searchResults={searchResults} />
-                <Pagination>
-                  <Pagination.First
-                    onClick={() => handlePageChange(1)}
-                    disabled={currentPage === 1}
-                  />
-                  <Pagination.Prev
-                    onClick={() => handlePageChange(currentPage - 1)}
-                    disabled={currentPage === 1}
-                  />
-                  {Array.from({ length: totalPages }, (_, index) => (
-                    <Pagination.Item
-                      key={index + 1}
-                      active={index + 1 === currentPage}
-                      onClick={() => handlePageChange(index + 1)}
-                    >
-                      {index + 1}
-                    </Pagination.Item>
-                  ))}
-                  <Pagination.Next
-                    onClick={() => handlePageChange(currentPage + 1)}
-                    disabled={currentPage === totalPages}
-                  />
-                  <Pagination.Last
-                    onClick={() => handlePageChange(totalPages)}
-                    disabled={currentPage === totalPages}
-                  />
-                </Pagination>
+                <Container>
+                  <div className="d-flex flex-wrap justify-content-start">
+                    {getCurrentTabData().map((item, index) => (
+                      <a
+                        key={index}
+                        href={
+                          currentTab === 0
+                            ? `/movie/${item.id}`
+                            : currentTab === 1
+                              ? `/show/${item.id}`
+                              : `/video/${item.id}`
+                        }
+                        style={{ textDecoration: "none", color: "inherit" }}
+                      >
+                        <Card
+                          style={{ width: "18rem", margin: "0.5rem" }}
+                          className="flex-grow-1"
+                        >
+                          <Card.Img
+                            variant="top"
+                            src={item.thumbnail_cdn_path ? getCdnHostEndpoint() + item.thumbnail_cdn_path : "/default-thumbnail.jpg"}
+                            alt={item.name || item.title}
+                            style={{ height: "200px", objectFit: "cover" }}
+                          />
+                          <Card.Body>
+                            <Card.Title>{item.name || item.title}</Card.Title>
+                            {currentTab === 1 && (
+                              <Card.Text>
+                                {item.total_seasons && <div>Seasons: {item.total_seasons}</div>}
+                                {item.total_episodes && <div>Episodes: {item.total_episodes}</div>}
+                              </Card.Text>
+                            )}
+                          </Card.Body>
+                        </Card>
+                      </a>
+                    ))}
+                  </div>
+                  <Pagination className="justify-content-center mt-3">
+                    <Pagination.First
+                      onClick={() => handlePageChange(1)}
+                      disabled={currentPage === 1}
+                    />
+                    <Pagination.Prev
+                      onClick={() => handlePageChange(currentPage - 1)}
+                      disabled={currentPage === 1}
+                    />
+                    {Array.from({ length: totalPages }, (_, index) => (
+                      <Pagination.Item
+                        key={index + 1}
+                        active={index + 1 === currentPage}
+                        onClick={() => handlePageChange(index + 1)}
+                      >
+                        {index + 1}
+                      </Pagination.Item>
+                    ))}
+                    <Pagination.Next
+                      onClick={() => handlePageChange(currentPage + 1)}
+                      disabled={currentPage === totalPages}
+                    />
+                    <Pagination.Last
+                      onClick={() => handlePageChange(totalPages)}
+                      disabled={currentPage === totalPages}
+                    />
+                  </Pagination>
+                </Container>
               </div>
             )}
           </>

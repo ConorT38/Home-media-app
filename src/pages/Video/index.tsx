@@ -74,7 +74,26 @@ const VideoContent: React.FC = () => {
       setIsDeleting(false);
     }
   };
-
+  useEffect(() => {
+    if (videoId) {
+      const checkEpisodeInfo = async () => {
+        try {
+          const response = await fetch(
+            `${getHostAPIEndpoint()}/video/${videoId}/episode-info`
+          );
+          if (response.ok) {
+            console.log("Episode info found for videoId:", videoId);
+            const episodeInfo = await response.json();
+            const { show_id, season_number, episode_number } = episodeInfo;
+            window.location.href = `/show/${show_id}/season/${season_number}/episode/${episode_number}`;
+          }
+        } catch (error) {
+          console.error("Error checking episode info:", error);
+        }
+      };
+      checkEpisodeInfo();
+    }
+  }, [videoId]);
   useEffect(() => {
     const handleBeforeUnload = () => {
       if (videoId) {
@@ -85,7 +104,7 @@ const VideoContent: React.FC = () => {
           if (stored) {
             ids = JSON.parse(stored).map((id: any) => parseInt(id, 10)).filter((id: any) => !isNaN(id));
           }
-        } catch {}
+        } catch { }
         const intId = parseInt(videoId, 10);
         if (!isNaN(intId) && !ids.includes(intId)) {
           ids.push(intId);
@@ -112,7 +131,7 @@ const VideoContent: React.FC = () => {
         setVideoId(id);
         getSearchResults(id).then(
           (result) => {
-            if(result?.error) {
+            if (result?.error) {
               setErrorFetching(true);
               setTitle("Error fetching video details");
               setIsLoading(false);
@@ -152,16 +171,16 @@ const VideoContent: React.FC = () => {
         // Upload image first
         const uploadResult = await uploadImage(thumbnailFile);
         console.log("Image uploaded successfully:", uploadResult);
-        thumbnailData = {  thumbnailId: uploadResult.file.id };
+        thumbnailData = { thumbnailId: uploadResult.file.id };
       } else if (thumbnailEditType === "link" && thumbnailLink) {
-        thumbnailData = { filePath: thumbnailLink, mediaType: 'video', filename:'null', };
+        thumbnailData = { filePath: thumbnailLink, mediaType: 'video', filename: 'null', };
       }
 
       console.log("Thumbnail data to be sent:", JSON.stringify({
-            id: videoId,
-            title: editedTitle.trim(),
-            ...thumbnailData,
-          }));
+        id: videoId,
+        title: editedTitle.trim(),
+        ...thumbnailData,
+      }));
 
       // Update video
       await fetch(
@@ -212,11 +231,11 @@ const VideoContent: React.FC = () => {
             <ReactPlayer
               light={<img src={thumbnailSrc} />}
               controls={isControlsEnabled}
-              url={`${getCdnHostEndpoint()+ cdnPath}`
+              url={`${getCdnHostEndpoint() + cdnPath}`
               }
               width="100%"
               height="100%"
-              style={{objectFit: "cover" }}
+              style={{ objectFit: "cover" }}
             />
           </div>
         ) : (
@@ -226,7 +245,7 @@ const VideoContent: React.FC = () => {
           >
             <ReactPlayer
               controls={isControlsEnabled}
-              url={`${getCdnHostEndpoint()+ cdnPath}`}
+              url={`${getCdnHostEndpoint() + cdnPath}`}
 
               width="100%"
               height="100%"
@@ -258,10 +277,10 @@ const VideoContent: React.FC = () => {
         <br />
         {views} views &middot; {new Date(uploaded).toLocaleDateString("en-US")}
         <hr />
-            </div>
+      </div>
 
-            {/* Delete Confirmation Modal */}
-            <Modal show={showDeleteModal} onHide={() => setShowDeleteModal(false)}>
+      {/* Delete Confirmation Modal */}
+      <Modal show={showDeleteModal} onHide={() => setShowDeleteModal(false)}>
         <Modal.Header closeButton>
           <Modal.Title>Confirm Delete</Modal.Title>
         </Modal.Header>
@@ -280,7 +299,7 @@ const VideoContent: React.FC = () => {
             Delete
           </Button>
         </Modal.Footer>
-            </Modal>
+      </Modal>
 
       <Modal show={showModal} onHide={() => setShowModal(false)}>
         <Modal.Header closeButton>

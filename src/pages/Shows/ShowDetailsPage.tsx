@@ -37,6 +37,10 @@ const ShowDetailsPage: React.FC = () => {
             })
             .then(
                 (result) => {
+                    if (!result) {
+                        window.location.href = "/404"; // Redirect to 404 page if no show is found
+                        return;
+                    }
                     console.log("Show details fetched:", result);
                     setShowDetails(result);
                     setTitle(result.name);
@@ -46,6 +50,7 @@ const ShowDetailsPage: React.FC = () => {
                 },
                 () => {
                     setErrorLoading(true);
+                    window.location.href = "/404"; // Redirect to 404 page on error
                 }
             );
     };
