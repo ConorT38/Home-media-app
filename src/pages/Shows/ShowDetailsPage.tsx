@@ -63,38 +63,39 @@ const ShowDetailsPage: React.FC = () => {
             console.log("Seasons details fetched:", result);
 
             // Group episodes by season_number
-            const grouped = result.reduce((acc: any, episode: any) => {
+            const grouped = result.reduce((acc: Record<number, ShowEpisode[]>, episode: any) => {
                 const seasonNum = episode.season_number;
                 if (!acc[seasonNum]) {
                     acc[seasonNum] = [];
                 }
-                acc[seasonNum].push(episode);
+                acc[seasonNum].push({
+                    id: episode.id,
+                    show_id: episode.show_id,
+                    season: episode.season_number,
+                    episodeNumber: episode.episode_number,
+                    video: {
+                        id: episode.video_id,
+                        filename: episode.filename,
+                        title: episode.title,
+                        cdn_path: episode.cdn_path,
+                        uploaded: episode.uploaded ? new Date(episode.uploaded) : null,
+                        views: episode.views,
+                        entertainment_type: episode.entertainment_type,
+                        thumbnail_cdn_path: episode.thumbnail_cdn_path,
+                    },
+                });
                 return acc;
             }, {});
 
-            // Convert to array of { seasonNumber, episodes }
-            const seasonsArr = Object.entries(grouped).map(([seasonNumber, episodes]) => ({
-                seasonNumber: Number(seasonNumber),
-                episodes: (episodes as any[])
-                    .map((ep) => ({
-                        id: ep.id,
-                        show_id: ep.show_id,
-                        season: ep.season_number,
-                        episodeNumber: ep.episode_number,
-                        video: {
-                            id: ep.video_id,
-                            filename: ep.filename,
-                            title: ep.title,
-                            cdn_path: ep.cdn_path,
-                            uploaded: ep.uploaded ? new Date(ep.uploaded) : null,
-                            views: ep.views,
-                            entertainment_type: ep.entertainment_type,
-                            thumbnail_cdn_path: ep.thumbnail_cdn_path,
-                        },
-                    }))
-                    .sort((a, b) => a.episodeNumber - b.episodeNumber) as ShowEpisode[], // Sort by episode number
-            }));
+            // Convert grouped object to array of { seasonNumber, episodes }
+            const seasonsArr = Object.entries(grouped)
+                .map(([seasonNumber, episodes]) => ({
+                    seasonNumber: Number(seasonNumber),
+                    episodes: episodes.sort((a, b) => a.episodeNumber - b.episodeNumber), // Sort by episode number
+                }))
+                .sort((a, b) => a.seasonNumber - b.seasonNumber); // Sort by season number
 
+            console.log("Grouped seasons:", seasonsArr);
             setSeasons(seasonsArr);
             return result;
         } catch (error) {
@@ -102,6 +103,7 @@ const ShowDetailsPage: React.FC = () => {
             return null;
         }
     };
+
 
     useEffect(() => {
         getShowDetails();
@@ -325,7 +327,7 @@ const ShowDetailsPage: React.FC = () => {
                                 className="hide-scrollbar"
                             >
                                 <div style={{ display: "inline-flex", gap: "1rem" }}>
-                                    {season.episodes?.map((episode: ShowEpisode, index: number) => (
+                                    {season.episodes?.filter((e: ShowEpisode) => e.season === season.seasonNumber).map((episode: ShowEpisode, index: number) => (
                                         <Card
                                             key={episode.id || index}
                                             style={{
