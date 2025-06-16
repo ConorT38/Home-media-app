@@ -14,6 +14,8 @@ import ErrorPage from "./pages/ErrorPage";
 import MyTorrentsPage from "./pages/Torrents/MyTorrentsPage";
 import ImagesPage from "./pages/Image";
 import EpisodeVideoPage from "./pages/Shows/EpisodeVideoPage";
+import ViewMoviesPage from "./pages/Movies/ViewMoviesPage";
+import MovieVideoPage from "./pages/Movies/MovieVideoPage";
 
 const App: React.FC = () => {
   return (
@@ -33,6 +35,8 @@ const App: React.FC = () => {
             <Route path="/torrents/search" element={<SearchTorrentsPage />} />
             <Route path="/torrents/my-torrents" element={<MyTorrentsPage />} />
             <Route path="/images" element={<ImagesPage />} />
+            <Route path="/movies" element={<ViewMoviesPage />} />
+            <Route path="/movie/:id" element={<MovieVideoPage />} />
 
             <Route path="*" element={<ErrorPage />} />
           </Routes>
