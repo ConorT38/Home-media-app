@@ -81,7 +81,7 @@ const MovieVideoPage: React.FC = () => {
 
                 // Send the new title to the backend
                 fetch(
-                    getHostEndpoint() + ":8081/api/video/" +
+                    getHostEndpoint() + ":8081/api/movie/" +
                     location.pathname.split("/")[2],
                     {
                         method: "PUT",
