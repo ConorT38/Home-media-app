@@ -180,15 +180,24 @@ export const SearchPage: React.FC = () => {
                       onClick={() => handlePageChange(currentPage - 1)}
                       disabled={currentPage === 1}
                     />
-                    {Array.from({ length: totalPages }, (_, index) => (
-                      <Pagination.Item
-                        key={index + 1}
-                        active={index + 1 === currentPage}
-                        onClick={() => handlePageChange(index + 1)}
-                      >
-                        {index + 1}
-                      </Pagination.Item>
-                    ))}
+                    {Array.from({ length: Math.min(5, totalPages) }, (_, index) => {
+                      const page = Math.max(
+                        1,
+                        Math.min(
+                          totalPages - 4,
+                          currentPage - 2
+                        )
+                      ) + index;
+                      return (
+                        <Pagination.Item
+                          key={page}
+                          active={page === currentPage}
+                          onClick={() => handlePageChange(page)}
+                        >
+                          {page}
+                        </Pagination.Item>
+                      );
+                    })}
                     <Pagination.Next
                       onClick={() => handlePageChange(currentPage + 1)}
                       disabled={currentPage === totalPages}

@@ -2,10 +2,9 @@ import React, { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCheck, faEdit } from "@fortawesome/free-solid-svg-icons";
 import { useLocation } from "react-router-dom";
-import { getCdnHostEndpoint, getHostAPIEndpoint, getHostEndpoint } from "../../utils/common";
-import { Card, Container, Spinner } from "react-bootstrap";
+import { getHostAPIEndpoint, getHostEndpoint } from "../../utils/common";
+import { Spinner } from "react-bootstrap";
 import ReactPlayer from "react-player";
-import { ShowEpisode } from "../../types";
 
 async function getSearchResults(movieId: number) {
     if (!movieId) {
