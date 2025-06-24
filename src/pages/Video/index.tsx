@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCheck, faEdit } from "@fortawesome/free-solid-svg-icons";
 import { useLocation } from "react-router-dom";
@@ -37,7 +37,12 @@ const VideoContent: React.FC = () => {
   const [isControlsEnabled, setIsControlsEnabled] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorFetching, setErrorFetching] = useState(false);
+  const [continueTime, setContinueTime] = useState<number | null>(null);
+  const [hasSeeked, setHasSeeked] = useState(false);
 
+
+  const playerRef = useRef<ReactPlayer>(null);
+  
   // Modal state
   const [showModal, setShowModal] = useState(false);
   const [thumbnailEditType, setThumbnailEditType] = useState<"upload" | "link">("upload");
@@ -94,24 +99,35 @@ const VideoContent: React.FC = () => {
       checkEpisodeInfo();
     }
   }, [videoId]);
+
   useEffect(() => {
     const handleBeforeUnload = () => {
-      if (videoId) {
-        const key = "continueWatchingIds";
-        let ids: number[] = [];
-        try {
-          const stored = localStorage.getItem(key);
-          if (stored) {
-            ids = JSON.parse(stored).map((id: any) => parseInt(id, 10)).filter((id: any) => !isNaN(id));
-          }
-        } catch { }
-        const intId = parseInt(videoId, 10);
-        if (!isNaN(intId) && !ids.includes(intId)) {
-          ids.push(intId);
-          localStorage.setItem(key, JSON.stringify(ids));
-        }
+  if (videoId) {
+    const key = "continueWatchingIds";
+    let ids: { id: number, time: number, finished:number }[] = [];
+    try {
+      const stored = localStorage.getItem(key);
+      if (stored) {
+        ids = JSON.parse(stored).filter((item: any) => typeof item.id === "number" && typeof item.time === "number");
       }
-    };
+    } catch { }
+    const intId = parseInt(videoId, 10);
+    const currentTime = playerRef.current?.getCurrentTime?.();
+     const duration = playerRef.current?.getDuration?.();
+    let finishedPerc = 0;
+    if (typeof currentTime === "number" && typeof duration === "number" && duration > 0) {
+      finishedPerc = Math.min(100, Math.round((currentTime / duration) * 100));
+      // You can now use finishedPerc as needed, e.g., log or store it
+      console.log("Finished percent:", finishedPerc);
+    }
+if (typeof currentTime === "number" && currentTime > 1) { // avoid saving 0 or near-zero times
+  ids = ids.filter(item => item.id !== intId);
+  ids.push({ id: intId, time: currentTime, finished: finishedPerc });
+  localStorage.setItem(key, JSON.stringify(ids));
+}
+    
+  }
+};
 
     window.addEventListener("beforeunload", handleBeforeUnload);
     return () => {
@@ -120,7 +136,64 @@ const VideoContent: React.FC = () => {
     };
   }, [videoId]);
 
+   useEffect(() => {
+    const key = "continueWatchingIds";
+    const stored = localStorage.getItem(key);
+    if (stored && videoId) {
+      try {
+        const ids = JSON.parse(stored);
+        const entry = ids.find((item: any) => item.id === parseInt(videoId, 10));
+        if (entry) {
+          setContinueTime(entry.time);
+        }
+      } catch {}
+    }
+    setHasSeeked(false); // Reset seeked state when videoId changes
+  }, [videoId]);
+
+  // Handler for when the player is ready
+  const handlePlayerReady = () => {
+    if (!hasSeeked && continueTime && playerRef.current) {
+      playerRef.current.seekTo(continueTime, "seconds");
+      setHasSeeked(true);
+      console.log("Sought to continue time:", continueTime);
+    }
+  };
+
   const location = useLocation();
+
+  useEffect(() => {
+    if (!videoId) return;
+    const key = "continueWatchingIds";
+    const intId = parseInt(videoId, 10);
+
+    const updateContinueWatching = () => {
+      let ids: { id: number, time: number, finished:number}[] = [];
+      try {
+        const stored = localStorage.getItem(key);
+        if (stored) {
+          ids = JSON.parse(stored).filter((item: any) => typeof item.id === "number" && typeof item.time === "number");
+        }
+      } catch { }
+          const currentTime = playerRef.current?.getCurrentTime?.();
+    const duration = playerRef.current?.getDuration?.();
+    let finishedPerc = 0;
+    if (typeof currentTime === "number" && typeof duration === "number" && duration > 0) {
+      finishedPerc = Math.min(100, Math.round((currentTime / duration) * 100));
+      // You can now use finishedPerc as needed, e.g., log or store it
+      console.log("Finished percent:", finishedPerc);
+    }
+      if (typeof currentTime === "number" && currentTime > 1) {
+        ids = ids.filter(item => item.id !== intId);
+        ids.push({ id: intId, time: currentTime, finished: finishedPerc });
+        localStorage.setItem(key, JSON.stringify(ids));
+      }
+    };
+
+    const interval = setInterval(updateContinueWatching, 15000);
+
+    return () => clearInterval(interval);
+  }, [videoId]);
 
   useEffect(() => {
     if (location.pathname) {
@@ -161,6 +234,21 @@ const VideoContent: React.FC = () => {
       }
     }
   }, [location.pathname]);
+
+  useEffect(() => {
+  const key = "continueWatchingIds";
+  const stored = localStorage.getItem(key);
+  if (stored && videoId) {
+    try {
+      const ids = JSON.parse(stored);
+      const entry = ids.find((item: any) => item.id === parseInt(videoId, 10));
+      if (entry && playerRef.current) {
+        playerRef.current.seekTo(entry.time, "seconds");
+        console.log("Resuming video from time:", entry.time);
+      }
+    } catch {}
+  }
+}, [videoId]);
 
   const handleEditVideo = async () => {
     setIsSubmitting(true);
@@ -214,9 +302,11 @@ const VideoContent: React.FC = () => {
 
   if (isLoading) {
     return (
-      <Spinner animation="border" role="status">
-        <span className="visually-hidden">Loading...</span>
-      </Spinner>
+      <div className="d-flex justify-content-center align-items-center" style={{ minHeight: "50vh" }}>
+        <Spinner animation="border" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </Spinner>
+      </div>
     );
   }
 
@@ -229,13 +319,15 @@ const VideoContent: React.FC = () => {
             onMouseLeave={() => setIsControlsEnabled(false)}
           >
             <ReactPlayer
-              light={<img src={thumbnailSrc} />}
+              light={<img loading="lazy" src={thumbnailSrc} />}
               controls={isControlsEnabled}
               url={`${getCdnHostEndpoint() + cdnPath}`
               }
+              ref={playerRef}
               width="100%"
               height="100%"
               style={{ objectFit: "cover" }}
+              onReady={handlePlayerReady}
             />
           </div>
         ) : (
@@ -246,9 +338,10 @@ const VideoContent: React.FC = () => {
             <ReactPlayer
               controls={isControlsEnabled}
               url={`${getCdnHostEndpoint() + cdnPath}`}
-
+              ref={playerRef}
               width="100%"
               height="100%"
+              onReady={handlePlayerReady}
             />
           </div>
         )}

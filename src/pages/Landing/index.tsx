@@ -11,11 +11,29 @@ const Landing: React.FC = () => {
 
   const [continueWatchingResults, setContinueWatchingResults] = useState<Video[]>([]);
 
-  useEffect(() => {
+  const removeFromContinueWatching = (id: number) => {
     const idsString = localStorage.getItem("continueWatchingIds");
     if (idsString) {
       try {
         const ids: number[] = JSON.parse(idsString);
+        const updatedIds = ids.filter((itemId) => itemId !== id);
+        localStorage.setItem("continueWatchingIds", JSON.stringify(updatedIds));
+        setContinueWatchingResults((prev) =>
+          prev.filter((media) => media.id !== id)
+        );
+      } catch {
+        console.error("Error parsing continue watching IDs");
+      }
+    }
+  };
+
+  useEffect(() => {
+    const idsString = localStorage.getItem("continueWatchingIds");
+    if (idsString) {
+      try {
+        console.log("Continue watching IDs string:", idsString);
+       const items: { id: number; time: number }[] = JSON.parse(idsString);
+        const ids = items.map((item) => item.id);
         console.log("Continue watching IDs:", ids);
         if (Array.isArray(ids) && ids.length > 0) {
           // Send ids as a comma-separated string in the query parameter
@@ -125,6 +143,7 @@ const Landing: React.FC = () => {
               }}
             >
               <Card.Img
+              loading="lazy"
                 variant="top"
                 src={
                   media?.thumbnail_cdn_path
@@ -193,14 +212,33 @@ const Landing: React.FC = () => {
                 <Card
                   key={index}
                   style={{
-                    width: "18rem",
-                    display: "inline-block",
-                    verticalAlign: "top",
-                    minWidth: "18rem",
-                    maxWidth: "18rem",
+                  width: "18rem",
+                  display: "inline-block",
+                  verticalAlign: "top",
+                  minWidth: "18rem",
+                  maxWidth: "18rem",
+                  position: "relative",
                   }}
                 >
+                  {/* Close button */}
+                  <Button
+                  variant="light"
+                  size="sm"
+                  style={{
+                    position: "absolute",
+                    top: 6,
+                    right: 6,
+                    zIndex: 2,
+                    borderRadius: "50%",
+                    padding: "0.25rem 0.5rem",
+                    lineHeight: 1,
+                  }}
+                  onClick={() => removeFromContinueWatching(media.id)}
+                  >
+                  &times;
+                  </Button>
                   <Card.Img
+                    loading="lazy"
                     variant="top"
                     src={
                       media?.thumbnail_cdn_path
@@ -209,23 +247,60 @@ const Landing: React.FC = () => {
                     }
                     style={{ height: "200px", objectFit: "cover" }}
                   />
+                  {/* Progress bar */}
+                  <div
+                    style={{
+                      position: "absolute",
+                      left: 0,
+                      bottom: 0,
+                      width: "100%",
+                      height: "6px",
+                      background: "#303030",
+                      borderBottomLeftRadius: "0.375rem",
+                      borderBottomRightRadius: "0.375rem",
+                      overflow: "hidden",
+                      zIndex: 1,
+                      pointerEvents: "none",
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: `${(() => {
+                          const idsString = localStorage.getItem("continueWatchingIds");
+                          if (idsString) {
+                            try {
+                              const items: { id: number; time: number; finished?: number }[] = JSON.parse(idsString);
+                              const found = items.find((item) => item.id === media.id);
+                              return Math.round((found?.finished ?? 0));
+                            } catch {
+                              return 0;
+                            }
+                          }
+                          return 0;
+                        })()}%`,
+                        height: "100%",
+                        background: "tomato",
+                        transition: "width 0.3s",
+                      }}
+                    />
+                  </div>
                   <Card.Body>
-                    <Card.Title>
-                      <Link
-                        to={"/video/" + media.id}
-                        style={{ textDecoration: "none" }}
-                      >
-                        {media.title}
-                      </Link>
-                    </Card.Title>
-                    <Card.Text>
-                      <Row>
-                        <Col>
-                          <small>{media?.views + " views"}</small>
-                        </Col>
-                        <Col></Col>
-                      </Row>
-                    </Card.Text>
+                  <Card.Title>
+                    <Link
+                    to={"/video/" + media.id}
+                    style={{ textDecoration: "none" }}
+                    >
+                    {media.title}
+                    </Link>
+                  </Card.Title>
+                  <Card.Text>
+                    <Row>
+                    <Col>
+                      <small>{media?.views + " views"}</small>
+                    </Col>
+                    <Col></Col>
+                    </Row>
+                  </Card.Text>
                   </Card.Body>
                 </Card>
               ))}

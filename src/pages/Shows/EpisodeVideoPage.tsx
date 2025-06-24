@@ -282,6 +282,7 @@ const EpisodeVideoPage: React.FC = () => {
                       }}
                     >
                       <Card.Img
+                      loading="lazy"
                         variant="top"
                         src={
                           episode.video?.thumbnail_cdn_path

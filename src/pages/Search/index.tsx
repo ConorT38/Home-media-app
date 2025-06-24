@@ -153,6 +153,7 @@ export const SearchPage: React.FC = () => {
                           className="flex-grow-1"
                         >
                           <Card.Img
+                          loading="lazy"
                             variant="top"
                             src={item.thumbnail_cdn_path ? getCdnHostEndpoint() + item.thumbnail_cdn_path : "/default-thumbnail.jpg"}
                             alt={item.name || item.title}

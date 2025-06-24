@@ -86,6 +86,7 @@ const ViewMoviesPage: React.FC = () => {
                             <Card className="h-100">
                                 <Card.Body>
                                     <Card.Img
+                                    loading="lazy"
                                         variant="top"
                                         src={object.thumbnail_cdn_path ? getCdnHostEndpoint() + object.thumbnail_cdn_path : '/default-thumbnail.jpg'}
                                         alt={object.name}

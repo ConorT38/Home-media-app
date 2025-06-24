@@ -86,6 +86,7 @@ const ViewShowsPage: React.FC = () => {
                             <Card className="h-100">
                                 <Card.Body>
                                     <Card.Img
+                                    loading="lazy"
                                         variant="top"
                                         src={getCdnHostEndpoint() + object.thumbnail_cdn_path}
                                         alt={object.name}

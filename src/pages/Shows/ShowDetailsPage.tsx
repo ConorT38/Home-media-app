@@ -270,6 +270,7 @@ const ShowDetailsPage: React.FC = () => {
                     }}
                 >
                     <img
+                        loading="lazy"
                         src={thumbnailPath}
                         alt="Show Banner"
                         className="img-fluid"
@@ -339,6 +340,7 @@ const ShowDetailsPage: React.FC = () => {
                                             }}
                                         >
                                             <Card.Img
+                                                loading="lazy"
                                                 variant="top"
                                                 src={
                                                     episode.video?.thumbnail_cdn_path
