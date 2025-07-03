@@ -130,6 +130,33 @@ const EpisodeVideoPage: React.FC = () => {
     }
   }, [location.pathname]);
 
+  useEffect(() => {
+    const checkVideoCompletion = () => {
+      const player = document.querySelector("video");
+      if (player) {
+        player.addEventListener("ended", () => {
+          const currentSeason = seasons.find(s => s.seasonNumber === seasonId);
+          if (currentSeason) {
+            const nextEpisode = currentSeason.episodes.find(
+              ep => ep.episodeNumber === episodeId + 1
+            );
+            if (nextEpisode) {
+              window.location.href = `/show/${nextEpisode.show_id}/season/${nextEpisode.season}/episode/${nextEpisode.episodeNumber}`;
+            } else {
+              const nextSeason = seasons.find(s => s.seasonNumber === seasonId + 1);
+              if (nextSeason && nextSeason.episodes.length > 0) {
+                const firstEpisode = nextSeason.episodes[0];
+                window.location.href = `/show/${firstEpisode.show_id}/season/${firstEpisode.season}/episode/${firstEpisode.episodeNumber}`;
+              }
+            }
+          }
+        });
+      }
+    };
+
+    checkVideoCompletion();
+  }, [seasons, seasonId, episodeId]);
+
   const handleEditVideoName = (title: string) => {
     if (title) {
       const newTitle = title.trim();
@@ -282,7 +309,7 @@ const EpisodeVideoPage: React.FC = () => {
                       }}
                     >
                       <Card.Img
-                      loading="lazy"
+                        loading="lazy"
                         variant="top"
                         src={
                           episode.video?.thumbnail_cdn_path
