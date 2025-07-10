@@ -20,6 +20,7 @@ const NavigationBar: React.FC = () => {
           <Navbar.Toggle aria-controls="responsive-navbar-nav" />
           <Navbar.Collapse id="basic-navbar-nav">
             <Nav className="me-auto">
+              <Nav.Link href="/catalog">Catalog</Nav.Link>
               <Nav.Link href="/movies">Movies</Nav.Link>
               <Nav.Link href="/shows">Shows</Nav.Link>
               <Nav.Link href="/images">Images</Nav.Link>

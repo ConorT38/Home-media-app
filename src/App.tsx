@@ -16,6 +16,7 @@ import ImagesPage from "./pages/Image";
 import EpisodeVideoPage from "./pages/Shows/EpisodeVideoPage";
 import ViewMoviesPage from "./pages/Movies/ViewMoviesPage";
 import MovieVideoPage from "./pages/Movies/MovieVideoPage";
+import CatalogPage from "./pages/Catalog/CatalogPage";
 
 const App: React.FC = () => {
   return (
@@ -37,6 +38,7 @@ const App: React.FC = () => {
             <Route path="/images" element={<ImagesPage />} />
             <Route path="/movies" element={<ViewMoviesPage />} />
             <Route path="/movie/:id" element={<MovieVideoPage />} />
+            <Route path="/catalog" element={<CatalogPage />} />
 
             <Route path="*" element={<ErrorPage />} />
           </Routes>
