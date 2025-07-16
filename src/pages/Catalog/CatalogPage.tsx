@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { Spinner, Button } from "react-bootstrap";
-import { getHostAPIEndpoint } from "../../utils/common";
+import { Spinner, Button, Pagination } from "react-bootstrap";
+import { getCdnHostEndpoint, getHostAPIEndpoint } from "../../utils/common";
 import { Video } from "../../types";
 
 const CatalogPage: React.FC = () => {
@@ -25,6 +25,10 @@ const CatalogPage: React.FC = () => {
         } finally {
             setIsLoading(false);
         }
+    };
+
+    const handlePageChange = (page: number) => {
+        setCurrentPage(page);
     };
 
     useEffect(() => {
@@ -63,7 +67,7 @@ const CatalogPage: React.FC = () => {
                         <div key={index} className="col-md-4 mb-4">
                             <div className="card">
                                 <img
-                                    src={video.thumbnail_cdn_path || "/default-thumbnail.jpg"}
+                                    src={getCdnHostEndpoint() + video.thumbnail_cdn_path || "/default-thumbnail.jpg"}
                                     className="card-img-top"
                                     style={{ height: "200px", objectFit: "cover" }}
                                 />
@@ -76,14 +80,43 @@ const CatalogPage: React.FC = () => {
                         </div>
                     ))}
                 </div>
-                <div className="d-flex justify-content-between">
-                    <Button variant="dark" disabled={currentPage === 1} onClick={handlePreviousPage}>
-                        Previous
-                    </Button>
-                    <span>Page {currentPage} of {totalPages}</span>
-                    <Button variant="dark" disabled={currentPage === totalPages} onClick={handleNextPage}>
-                        Next
-                    </Button>
+                <div className="d-flex justify-content-center">
+                    <Pagination className="justify-content-center mt-3">
+                        <Pagination.First
+                            onClick={() => handlePageChange(1)}
+                            disabled={currentPage === 1}
+                        />
+                        <Pagination.Prev
+                            onClick={() => handlePageChange(currentPage - 1)}
+                            disabled={currentPage === 1}
+                        />
+                        {Array.from({ length: Math.min(5, totalPages) }, (_, index) => {
+                            const page = Math.max(
+                                1,
+                                Math.min(
+                                    totalPages - 4,
+                                    currentPage - 2
+                                )
+                            ) + index;
+                            return (
+                                <Pagination.Item
+                                    key={page}
+                                    active={page === currentPage}
+                                    onClick={() => handlePageChange(page)}
+                                >
+                                    {page}
+                                </Pagination.Item>
+                            );
+                        })}
+                        <Pagination.Next
+                            onClick={() => handlePageChange(currentPage + 1)}
+                            disabled={currentPage === totalPages}
+                        />
+                        <Pagination.Last
+                            onClick={() => handlePageChange(totalPages)}
+                            disabled={currentPage === totalPages}
+                        />
+                    </Pagination>
                 </div>
             </div>
         </React.Fragment>

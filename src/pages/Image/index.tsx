@@ -50,7 +50,7 @@ const ImagesPage: React.FC = () => {
                     images.map((image) => (
                         <Col key={image.id} xs={12} sm={6} md={4} lg={3} className="mb-4">
                             <Card>
-                                <Card.Img variant="top" src={getHostEndpoint()+':8000'+image.cdn_path} alt={`Image ${image.id}`} />
+                                <Card.Img variant="top" src={getHostEndpoint() + ':8000' + image.cdn_path} alt={`Image ${image.id}`} />
                                 <Card.Body>
                                     <Card.Title>Uploaded: {new Date(image.uploaded).toLocaleDateString()}</Card.Title>
                                 </Card.Body>
@@ -66,7 +66,7 @@ const ImagesPage: React.FC = () => {
                 )}
             </Row>
             {images.length > 0 && (
-                <Pagination className="justify-content-center mt-4">
+                <Pagination className="justify-content-center mt-3">
                     <Pagination.First
                         onClick={() => handlePageChange(1)}
                         disabled={currentPage === 1}
@@ -75,15 +75,24 @@ const ImagesPage: React.FC = () => {
                         onClick={() => handlePageChange(currentPage - 1)}
                         disabled={currentPage === 1}
                     />
-                    {Array.from({ length: totalPages }, (_, i) => (
-                        <Pagination.Item
-                            key={i + 1}
-                            active={i + 1 === currentPage}
-                            onClick={() => handlePageChange(i + 1)}
-                        >
-                            {i + 1}
-                        </Pagination.Item>
-                    ))}
+                    {Array.from({ length: Math.min(5, totalPages) }, (_, index) => {
+                        const page = Math.max(
+                            1,
+                            Math.min(
+                                totalPages - 4,
+                                currentPage - 2
+                            )
+                        ) + index;
+                        return (
+                            <Pagination.Item
+                                key={page}
+                                active={page === currentPage}
+                                onClick={() => handlePageChange(page)}
+                            >
+                                {page}
+                            </Pagination.Item>
+                        );
+                    })}
                     <Pagination.Next
                         onClick={() => handlePageChange(currentPage + 1)}
                         disabled={currentPage === totalPages}

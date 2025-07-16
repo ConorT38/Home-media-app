@@ -12,13 +12,13 @@ const fetchSearchResults = async (site: string, query: string) => {
     return response.json();
 };
 
-const downloadTorrent = async (magnetUri: string, category: string) => {
+const downloadTorrent = async (name: string, magnetUri: string, category: string) => {
     const response = await fetch(`${getHostAPIEndpoint()}/torrent/download`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
         },
-        body: JSON.stringify({ magnetUri, category }),
+        body: JSON.stringify({ name, magnetUri, category }),
     });
 
     if (!response.ok) {
@@ -32,6 +32,7 @@ const SearchTorrentsPage: React.FC = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [showModal, setShowModal] = useState(false);
     const [selectedMagnet, setSelectedMagnet] = useState("");
+    const [selectedName, setSelectedName] = useState("");
     const [category, setCategory] = useState("");
     const [showToast, setShowToast] = useState(false);
     const [toastMessage, setToastMessage] = useState("");
@@ -47,8 +48,8 @@ const SearchTorrentsPage: React.FC = () => {
     );
 
     const { mutate: initiateDownload } = useMutation(
-        async ({ magnetUri, category }: { magnetUri: string; category: string }) =>
-            await downloadTorrent(magnetUri, category),
+        async ({ name, magnetUri, category }: { name: string, magnetUri: string; category: string }) =>
+            await downloadTorrent(name, magnetUri, category),
         {
             onError: (error) => {
                 console.error("Error initiating download:", error);
@@ -81,7 +82,8 @@ const SearchTorrentsPage: React.FC = () => {
         setCurrentPage(page);
     };
 
-    const handleDownloadClick = (magnetUri: string) => {
+    const handleDownloadClick = (name: string, magnetUri: string) => {
+        setSelectedName(name);
         setSelectedMagnet(magnetUri);
         setShowModal(true);
     };
@@ -89,7 +91,7 @@ const SearchTorrentsPage: React.FC = () => {
     const handleModalDownload = () => {
         if (category) {
             setDownloading(selectedMagnet);
-            initiateDownload({ magnetUri: selectedMagnet, category });
+            initiateDownload({ name: selectedName, magnetUri: selectedMagnet, category });
             setShowModal(false);
             setCategory(""); // Reset category
         } else {
@@ -162,7 +164,7 @@ const SearchTorrentsPage: React.FC = () => {
                                         <td>
                                             <Button
                                                 variant="success"
-                                                onClick={() => handleDownloadClick(result.magnet)}
+                                                onClick={() => handleDownloadClick(result.name, result.magnet)}
                                                 disabled={downloading === result.magnet}
                                             >
                                                 {downloading === result.magnet ? (
