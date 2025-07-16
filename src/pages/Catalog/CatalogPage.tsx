@@ -35,18 +35,6 @@ const CatalogPage: React.FC = () => {
         fetchVideos(currentPage);
     }, [currentPage]);
 
-    const handleNextPage = () => {
-        if (currentPage < totalPages) {
-            setCurrentPage((prevPage) => prevPage + 1);
-        }
-    };
-
-    const handlePreviousPage = () => {
-        if (currentPage > 1) {
-            setCurrentPage((prevPage) => prevPage - 1);
-        }
-    };
-
     if (isLoading) {
         return (
             <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "80vh" }}>
@@ -67,7 +55,7 @@ const CatalogPage: React.FC = () => {
                         <div key={index} className="col-md-4 mb-4">
                             <div className="card">
                                 <img
-                                    src={getCdnHostEndpoint() + video.thumbnail_cdn_path || "/default-thumbnail.jpg"}
+                                    src={getCdnHostEndpoint() + '/' + video.thumbnail_cdn_path || "/default-thumbnail.jpg"}
                                     className="card-img-top"
                                     style={{ height: "200px", objectFit: "cover" }}
                                 />
